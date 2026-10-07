@@ -1,0 +1,97 @@
+{
+  "version": "careerscape-ui-v1",
+  "assets": [
+    {
+      "id": "brand_icon_light",
+      "version": "1.0.0",
+      "url": "/art/brand_icon_light.ff1377f6020f.svg",
+      "sha256": "ff1377f6020fdba280df2e603c2d0de727fdc4eb8fdfe0aa4dbcec30fcb8c3d5",
+      "format": "svg",
+      "bytes": 442,
+      "width": 96,
+      "height": 96,
+      "type": "brand",
+      "reviewStatus": "agent-reviewed",
+      "rights": {
+        "sourceType": "original-code",
+        "licenseRecordId": "asset-ui-2026-10-08",
+        "redistributionApproved": true
+      },
+      "constraints": {
+        "minimumWidth": 24,
+        "clearSpace": 0.25,
+        "externalScripts": false,
+        "embeddedImages": false
+      }
+    },
+    {
+      "id": "brand_wordmark_light",
+      "version": "1.0.0",
+      "url": "/art/brand_wordmark_light.890aad32e02c.svg",
+      "sha256": "890aad32e02c8acdb37ed81ec2b1194d268104c0e1575255b9b343abfca49bed",
+      "format": "svg",
+      "bytes": 706,
+      "width": 400,
+      "height": 96,
+      "type": "brand",
+      "reviewStatus": "agent-reviewed",
+      "rights": {
+        "sourceType": "original-code",
+        "licenseRecordId": "asset-ui-2026-10-08",
+        "redistributionApproved": true
+      },
+      "constraints": {
+        "minimumWidth": 160,
+        "clearSpace": 0.25,
+        "externalScripts": false,
+        "embeddedImages": false
+      }
+    },
+    {
+      "id": "brand_icon_dark",
+      "version": "1.0.0",
+      "url": "/art/brand_icon_dark.c225e3b86702.svg",
+      "sha256": "c225e3b8670238f911cdec0341ddabf7ac54aa6690a0998ca01a3afaab10a3d5",
+      "format": "svg",
+      "bytes": 442,
+      "width": 96,
+      "height": 96,
+      "type": "brand",
+      "reviewStatus": "agent-reviewed",
+      "rights": {
+        "sourceType": "original-code",
+        "licenseRecordId": "asset-ui-2026-10-08",
+        "redistributionApproved": true
+      },
+      "constraints": {
+        "minimumWidth": 24,
+        "clearSpace": 0.25,
+        "externalScripts": false,
+        "embeddedImages": false
+      }
+    },
+    {
+      "id": "brand_wordmark_dark",
+      "version": "1.0.0",
+      "url": "/art/brand_wordmark_dark.ba734d1e9ff7.svg",
+      "sha256": "ba734d1e9ff77207fd89d891a9249ebf046398601cf6d737351bfd58e6a114a5",
+      "format": "svg",
+      "bytes": 706,
+      "width": 400,
+      "height": 96,
+      "type": "brand",
+      "reviewStatus": "agent-reviewed",
+      "rights": {
+        "sourceType": "original-code",
+        "licenseRecordId": "asset-ui-2026-10-08",
+        "redistributionApproved": true
+      },
+      "constraints": {
+        "minimumWidth": 160,
+        "clearSpace": 0.25,
+        "externalScripts": false,
+        "embeddedImages": false
+      }
+    }
+  ]
+}

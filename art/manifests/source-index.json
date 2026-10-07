@@ -1,0 +1,170 @@
+{
+  "style-board": {
+    "file": "art/source/style-board.0a3c42dae44e.png",
+    "sha256": "0a3c42dae44e2ed7abaa95e1d9a8cc15adfb58ffeacd3550f3b329722239bb89",
+    "bytes": 2413287,
+    "width": 1536,
+    "height": 1024,
+    "alpha": false
+  },
+  "lin-neutral": {
+    "file": "art/source/lin-neutral.8d5effe88208.png",
+    "sha256": "8d5effe8820887329cebb13d2729efac9b423c2715affadf59eb342c0258fd7e",
+    "bytes": 1785407,
+    "width": 1086,
+    "height": 1448,
+    "alpha": true
+  },
+  "office": {
+    "file": "art/source/office.0238360748db.png",
+    "sha256": "0238360748db9d517db0424275a4a91b2568b69c75d7bc82f5a5108fc75080ad",
+    "bytes": 2488690,
+    "width": 1672,
+    "height": 940,
+    "alpha": false
+  },
+  "lin-relaxed": {
+    "file": "art/source/lin-relaxed.529e4d9d5f70.png",
+    "sha256": "529e4d9d5f70000c9621b40faff7245c18b7d5bf9a274cf47c73e3929291c92c",
+    "bytes": 1633286,
+    "width": 1086,
+    "height": 1448,
+    "alpha": true
+  },
+  "lin-thinking": {
+    "file": "art/source/lin-thinking.d4353991cef2.png",
+    "sha256": "d4353991cef2e2f695b1fc0ca6804503aeb4eea77f2d382c2e696e8d2074574a",
+    "bytes": 1623413,
+    "width": 1086,
+    "height": 1448,
+    "alpha": true
+  },
+  "lin-serious": {
+    "file": "art/source/lin-serious.a60d9c51bd7f.png",
+    "sha256": "a60d9c51bd7fe70054999e16d9efe1fcfab22f83c815a203a8993a5a4ff53f36",
+    "bytes": 1629708,
+    "width": 1086,
+    "height": 1448,
+    "alpha": true
+  },
+  "zhou-neutral": {
+    "file": "art/source/zhou-neutral.cf61e1800c13.png",
+    "sha256": "cf61e1800c1387af8188d95e7388467897d97e09ec8af5928b7e63b04714b7e1",
+    "bytes": 1881371,
+    "width": 1086,
+    "height": 1448,
+    "alpha": true
+  },
+  "zhou-relaxed": {
+    "file": "art/source/zhou-relaxed.7c117e1c3432.png",
+    "sha256": "7c117e1c343254e18049ca723f813ea9008075ec142c30b54c1d0a363862ebe8",
+    "bytes": 1673565,
+    "width": 1086,
+    "height": 1448,
+    "alpha": true
+  },
+  "zhou-thinking": {
+    "file": "art/source/zhou-thinking.1c120e12cd77.png",
+    "sha256": "1c120e12cd776937a1cecc024a88901a242dc6f8cd79690959c5d4bd4eeeafa7",
+    "bytes": 1646774,
+    "width": 1086,
+    "height": 1448,
+    "alpha": true
+  },
+  "zhou-serious": {
+    "file": "art/source/zhou-serious.51a610bce982.png",
+    "sha256": "51a610bce9821eba294485f913e4b7b5c4efd92d02bd07e1c4bed835a4273c18",
+    "bytes": 1668707,
+    "width": 1086,
+    "height": 1448,
+    "alpha": true
+  },
+  "xu-neutral": {
+    "file": "art/source/xu-neutral.6f82a629c71f.png",
+    "sha256": "6f82a629c71f58278537eb7179b301dfb0101ba7f5c5d1746593433c07cc9585",
+    "bytes": 2026344,
+    "width": 1086,
+    "height": 1448,
+    "alpha": true
+  },
+  "xu-relaxed": {
+    "file": "art/source/xu-relaxed.41fdc57402a9.png",
+    "sha256": "41fdc57402a9c116d814ec13e2fc542ebd092523d795cb609f6cbeec443d867c",
+    "bytes": 1859781,
+    "width": 1086,
+    "height": 1448,
+    "alpha": true
+  },
+  "xu-thinking": {
+    "file": "art/source/xu-thinking.b0aa66f136d0.png",
+    "sha256": "b0aa66f136d02761742dd36d2bab8b1dddc202d4156332a157f4df164231d483",
+    "bytes": 1864095,
+    "width": 1086,
+    "height": 1448,
+    "alpha": true
+  },
+  "xu-serious": {
+    "file": "art/source/xu-serious.6b34f86f0860.png",
+    "sha256": "6b34f86f0860b25a83fae8d7ac5a88415effe0cee85c2fb9ad89a924ce92c0e4",
+    "bytes": 1862101,
+    "width": 1086,
+    "height": 1448,
+    "alpha": true
+  },
+  "meeting": {
+    "file": "art/source/meeting.a00c74cec700.png",
+    "sha256": "a00c74cec700b382b000a42ebb9966371f6f45e175bc696149f8e1b41ed043ec",
+    "bytes": 1966806,
+    "width": 1672,
+    "height": 941,
+    "alpha": false
+  },
+  "testing": {
+    "file": "art/source/testing.438d99e6e26f.png",
+    "sha256": "438d99e6e26f0d3b62c9044e8230ea2483d7264245b921f550784f12cf985b33",
+    "bytes": 2201206,
+    "width": 1672,
+    "height": 941,
+    "alpha": false
+  },
+  "terrace": {
+    "file": "art/source/terrace.6f05eccd4754.png",
+    "sha256": "6f05eccd4754f943554d8ab18a29173d811508832aadd7716d44eff8628f516d",
+    "bytes": 2544355,
+    "width": 1672,
+    "height": 941,
+    "alpha": false
+  },
+  "office-mobile": {
+    "file": "art/source/office-mobile.0cc89e81287f.png",
+    "sha256": "0cc89e81287fa0f6568c7f2f81a12ccedd3297538055dec4650fe21b0ed7691a",
+    "bytes": 2476461,
+    "width": 1086,
+    "height": 1448,
+    "alpha": false
+  },
+  "meeting-mobile": {
+    "file": "art/source/meeting-mobile.1d61ca7f13be.png",
+    "sha256": "1d61ca7f13beba4d69e188de3a217bd374fee706daa8186b3c870e53a2b94d88",
+    "bytes": 1996957,
+    "width": 1086,
+    "height": 1448,
+    "alpha": false
+  },
+  "testing-mobile": {
+    "file": "art/source/testing-mobile.cef21d5811b2.png",
+    "sha256": "cef21d5811b2dbc045579eb8110354fe0d08641709025d9b38c6e7f79bf2cd14",
+    "bytes": 2290425,
+    "width": 1086,
+    "height": 1448,
+    "alpha": false
+  },
+  "terrace-mobile": {
+    "file": "art/source/terrace-mobile.a11f520b12da.png",
+    "sha256": "a11f520b12dac213dad38d7411270540305b06f52ab3d7f4533dd72ddf71c5bf",
+    "bytes": 2556041,
+    "width": 1086,
+    "height": 1448,
+    "alpha": false
+  }
+}

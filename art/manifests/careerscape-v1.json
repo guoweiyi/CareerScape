@@ -1,0 +1,1227 @@
+{
+  "schemaVersion": "1.0",
+  "id": "careerscape-art",
+  "version": "careerscape-art-v1",
+  "semanticVersion": "1.0.0",
+  "status": "published",
+  "createdDate": "2026-10-08",
+  "assets": [
+    {
+      "id": "chr_lin_work_half_neutral",
+      "version": "1.0.0",
+      "file": "/art/chr_lin_work_half_neutral.04e971cf86bd.webp",
+      "url": "/art/chr_lin_work_half_neutral.04e971cf86bd.webp",
+      "format": "webp",
+      "sha256": "04e971cf86bd70c20206aa2ff81066050fa5a4d3b557b49bdd577eb67cfd34c3",
+      "width": 768,
+      "height": 1024,
+      "bytes": 108286,
+      "alpha": true,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 20,
+      "type": "character",
+      "characterId": "lin",
+      "outfitId": "work",
+      "poseId": "half",
+      "expressionId": "neutral",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.25
+      },
+      "faceSafeBox": {
+        "x": 0.24,
+        "y": 0.04,
+        "w": 0.52,
+        "h": 0.37
+      },
+      "safeArea": {
+        "x": 0.05,
+        "y": 0,
+        "w": 0.9,
+        "h": 1
+      },
+      "fallbackId": "avatar_lin_neutral",
+      "alt": "林澄的平静表情半身立绘",
+      "sourceHash": "8d5effe8820887329cebb13d2729efac9b423c2715affadf59eb342c0258fd7e",
+      "variants": [
+        {
+          "id": "chr_lin_work_half_neutral_2x",
+          "version": "1.0.0",
+          "file": "/art/chr_lin_work_half_neutral_2x.36b28239efe1.webp",
+          "url": "/art/chr_lin_work_half_neutral_2x.36b28239efe1.webp",
+          "format": "webp",
+          "sha256": "36b28239efe144cff8e67257158753f1dc9f6c498bcd69cafd0da8fb569fce03",
+          "width": 1152,
+          "height": 1536,
+          "bytes": 192934,
+          "alpha": true
+        }
+      ]
+    },
+    {
+      "id": "avatar_lin_neutral",
+      "version": "1.0.0",
+      "file": "/art/avatar_lin_neutral.ac24d990bb7d.webp",
+      "url": "/art/avatar_lin_neutral.ac24d990bb7d.webp",
+      "format": "webp",
+      "sha256": "ac24d990bb7d709166c8a61c465d1104e9f38e193c9ff85be52f6ed3f3182425",
+      "width": 128,
+      "height": 128,
+      "bytes": 7442,
+      "alpha": true,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 50,
+      "type": "avatar",
+      "characterId": "lin",
+      "expressionId": "neutral",
+      "sourceAssetId": "chr_lin_work_half_neutral",
+      "crop": {
+        "left": 217,
+        "top": 51,
+        "width": 673,
+        "height": 673
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "safeArea": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "fallbackId": null,
+      "alt": "林澄的同源头像",
+      "sourceHash": "8d5effe8820887329cebb13d2729efac9b423c2715affadf59eb342c0258fd7e",
+      "variants": [
+        {
+          "id": "avatar_lin_neutral_2x",
+          "version": "1.0.0",
+          "file": "/art/avatar_lin_neutral_2x.99deca6417bb.webp",
+          "url": "/art/avatar_lin_neutral_2x.99deca6417bb.webp",
+          "format": "webp",
+          "sha256": "99deca6417bb72e35ef271d58c7fc42ae7192a840d6e7e388ccbe3c6220ff687",
+          "width": 256,
+          "height": 256,
+          "bytes": 19518,
+          "alpha": true
+        }
+      ]
+    },
+    {
+      "id": "chr_lin_work_half_relaxed",
+      "version": "1.0.0",
+      "file": "/art/chr_lin_work_half_relaxed.9bf99af26b2f.webp",
+      "url": "/art/chr_lin_work_half_relaxed.9bf99af26b2f.webp",
+      "format": "webp",
+      "sha256": "9bf99af26b2f8f92c4d537d92f665dab0417358a54974d707379c96fdce1eb0b",
+      "width": 768,
+      "height": 1024,
+      "bytes": 85564,
+      "alpha": true,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 20,
+      "type": "character",
+      "characterId": "lin",
+      "outfitId": "work",
+      "poseId": "half",
+      "expressionId": "relaxed",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.25
+      },
+      "faceSafeBox": {
+        "x": 0.24,
+        "y": 0.04,
+        "w": 0.52,
+        "h": 0.37
+      },
+      "safeArea": {
+        "x": 0.05,
+        "y": 0,
+        "w": 0.9,
+        "h": 1
+      },
+      "fallbackId": "avatar_lin_neutral",
+      "alt": "林澄的轻松表情半身立绘",
+      "sourceHash": "529e4d9d5f70000c9621b40faff7245c18b7d5bf9a274cf47c73e3929291c92c",
+      "variants": [
+        {
+          "id": "chr_lin_work_half_relaxed_2x",
+          "version": "1.0.0",
+          "file": "/art/chr_lin_work_half_relaxed_2x.6138d38c153c.webp",
+          "url": "/art/chr_lin_work_half_relaxed_2x.6138d38c153c.webp",
+          "format": "webp",
+          "sha256": "6138d38c153ca35aa0f99af846724dcf7740332c3369de4f89f85b67ac86ad73",
+          "width": 1152,
+          "height": 1536,
+          "bytes": 149414,
+          "alpha": true
+        }
+      ]
+    },
+    {
+      "id": "chr_lin_work_half_thinking",
+      "version": "1.0.0",
+      "file": "/art/chr_lin_work_half_thinking.202574f1c50c.webp",
+      "url": "/art/chr_lin_work_half_thinking.202574f1c50c.webp",
+      "format": "webp",
+      "sha256": "202574f1c50c3b0b78d68b307829c22f259ba7457c4579092fde0a326126e94a",
+      "width": 768,
+      "height": 1024,
+      "bytes": 85348,
+      "alpha": true,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 20,
+      "type": "character",
+      "characterId": "lin",
+      "outfitId": "work",
+      "poseId": "half",
+      "expressionId": "thinking",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.25
+      },
+      "faceSafeBox": {
+        "x": 0.24,
+        "y": 0.04,
+        "w": 0.52,
+        "h": 0.37
+      },
+      "safeArea": {
+        "x": 0.05,
+        "y": 0,
+        "w": 0.9,
+        "h": 1
+      },
+      "fallbackId": "avatar_lin_neutral",
+      "alt": "林澄的思考表情半身立绘",
+      "sourceHash": "d4353991cef2e2f695b1fc0ca6804503aeb4eea77f2d382c2e696e8d2074574a",
+      "variants": [
+        {
+          "id": "chr_lin_work_half_thinking_2x",
+          "version": "1.0.0",
+          "file": "/art/chr_lin_work_half_thinking_2x.8c24420d7394.webp",
+          "url": "/art/chr_lin_work_half_thinking_2x.8c24420d7394.webp",
+          "format": "webp",
+          "sha256": "8c24420d7394e1992fdafde59ef3f29ba9dde9ce975406c46b77dfb68cbf2f35",
+          "width": 1152,
+          "height": 1536,
+          "bytes": 149564,
+          "alpha": true
+        }
+      ]
+    },
+    {
+      "id": "chr_lin_work_half_serious",
+      "version": "1.0.0",
+      "file": "/art/chr_lin_work_half_serious.378e2a1cdbf0.webp",
+      "url": "/art/chr_lin_work_half_serious.378e2a1cdbf0.webp",
+      "format": "webp",
+      "sha256": "378e2a1cdbf01f3c2613df81260d2fedeb782bb420f673fc8cda63ca4880314a",
+      "width": 768,
+      "height": 1024,
+      "bytes": 82842,
+      "alpha": true,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 20,
+      "type": "character",
+      "characterId": "lin",
+      "outfitId": "work",
+      "poseId": "half",
+      "expressionId": "serious",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.25
+      },
+      "faceSafeBox": {
+        "x": 0.24,
+        "y": 0.04,
+        "w": 0.52,
+        "h": 0.37
+      },
+      "safeArea": {
+        "x": 0.05,
+        "y": 0,
+        "w": 0.9,
+        "h": 1
+      },
+      "fallbackId": "avatar_lin_neutral",
+      "alt": "林澄的严肃表情半身立绘",
+      "sourceHash": "a60d9c51bd7fe70054999e16d9efe1fcfab22f83c815a203a8993a5a4ff53f36",
+      "variants": [
+        {
+          "id": "chr_lin_work_half_serious_2x",
+          "version": "1.0.0",
+          "file": "/art/chr_lin_work_half_serious_2x.dff0bb93462a.webp",
+          "url": "/art/chr_lin_work_half_serious_2x.dff0bb93462a.webp",
+          "format": "webp",
+          "sha256": "dff0bb93462a19307aeaee3177d38d29544b3869791987fb8804a368fcb3267d",
+          "width": 1152,
+          "height": 1536,
+          "bytes": 148568,
+          "alpha": true
+        }
+      ]
+    },
+    {
+      "id": "chr_zhou_work_half_neutral",
+      "version": "1.0.0",
+      "file": "/art/chr_zhou_work_half_neutral.767098932669.webp",
+      "url": "/art/chr_zhou_work_half_neutral.767098932669.webp",
+      "format": "webp",
+      "sha256": "7670989326696d8ba41d68d7a1d103bc1283c0f8a62d599321f08773bbae940d",
+      "width": 768,
+      "height": 1024,
+      "bytes": 72744,
+      "alpha": true,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 20,
+      "type": "character",
+      "characterId": "zhou",
+      "outfitId": "work",
+      "poseId": "half",
+      "expressionId": "neutral",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.25
+      },
+      "faceSafeBox": {
+        "x": 0.24,
+        "y": 0.04,
+        "w": 0.52,
+        "h": 0.37
+      },
+      "safeArea": {
+        "x": 0.05,
+        "y": 0,
+        "w": 0.9,
+        "h": 1
+      },
+      "fallbackId": "avatar_zhou_neutral",
+      "alt": "周砚的平静表情半身立绘",
+      "sourceHash": "cf61e1800c1387af8188d95e7388467897d97e09ec8af5928b7e63b04714b7e1",
+      "variants": [
+        {
+          "id": "chr_zhou_work_half_neutral_2x",
+          "version": "1.0.0",
+          "file": "/art/chr_zhou_work_half_neutral_2x.fec35739773e.webp",
+          "url": "/art/chr_zhou_work_half_neutral_2x.fec35739773e.webp",
+          "format": "webp",
+          "sha256": "fec35739773e87a0e23e182076d1ba5bcb1a835d3b0e64a3d410a040ea94578c",
+          "width": 1152,
+          "height": 1536,
+          "bytes": 128938,
+          "alpha": true
+        }
+      ]
+    },
+    {
+      "id": "avatar_zhou_neutral",
+      "version": "1.0.0",
+      "file": "/art/avatar_zhou_neutral.64af3a9bc9d7.webp",
+      "url": "/art/avatar_zhou_neutral.64af3a9bc9d7.webp",
+      "format": "webp",
+      "sha256": "64af3a9bc9d74929e6126a94fcce827450620db5343df21f37ee9a5810c597af",
+      "width": 128,
+      "height": 128,
+      "bytes": 5784,
+      "alpha": true,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 50,
+      "type": "avatar",
+      "characterId": "zhou",
+      "expressionId": "neutral",
+      "sourceAssetId": "chr_zhou_work_half_neutral",
+      "crop": {
+        "left": 217,
+        "top": 51,
+        "width": 673,
+        "height": 673
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "safeArea": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "fallbackId": null,
+      "alt": "周砚的同源头像",
+      "sourceHash": "cf61e1800c1387af8188d95e7388467897d97e09ec8af5928b7e63b04714b7e1",
+      "variants": [
+        {
+          "id": "avatar_zhou_neutral_2x",
+          "version": "1.0.0",
+          "file": "/art/avatar_zhou_neutral_2x.61c7fae0399c.webp",
+          "url": "/art/avatar_zhou_neutral_2x.61c7fae0399c.webp",
+          "format": "webp",
+          "sha256": "61c7fae0399c806beba7d198749a3b2423147be7d947c6ff0e5b204639f225a2",
+          "width": 256,
+          "height": 256,
+          "bytes": 14392,
+          "alpha": true
+        }
+      ]
+    },
+    {
+      "id": "chr_zhou_work_half_relaxed",
+      "version": "1.0.0",
+      "file": "/art/chr_zhou_work_half_relaxed.42c6d5eaa0ae.webp",
+      "url": "/art/chr_zhou_work_half_relaxed.42c6d5eaa0ae.webp",
+      "format": "webp",
+      "sha256": "42c6d5eaa0ae3281f5edaf3e526d787d3eebbc6cc81fd32006bba1b45e9c30db",
+      "width": 768,
+      "height": 1024,
+      "bytes": 63212,
+      "alpha": true,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 20,
+      "type": "character",
+      "characterId": "zhou",
+      "outfitId": "work",
+      "poseId": "half",
+      "expressionId": "relaxed",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.25
+      },
+      "faceSafeBox": {
+        "x": 0.24,
+        "y": 0.04,
+        "w": 0.52,
+        "h": 0.37
+      },
+      "safeArea": {
+        "x": 0.05,
+        "y": 0,
+        "w": 0.9,
+        "h": 1
+      },
+      "fallbackId": "avatar_zhou_neutral",
+      "alt": "周砚的轻松表情半身立绘",
+      "sourceHash": "7c117e1c343254e18049ca723f813ea9008075ec142c30b54c1d0a363862ebe8",
+      "variants": [
+        {
+          "id": "chr_zhou_work_half_relaxed_2x",
+          "version": "1.0.0",
+          "file": "/art/chr_zhou_work_half_relaxed_2x.401c28213622.webp",
+          "url": "/art/chr_zhou_work_half_relaxed_2x.401c28213622.webp",
+          "format": "webp",
+          "sha256": "401c2821362285ab28d3f6c583421cbab05951c54601d52252e0da84e8de28bd",
+          "width": 1152,
+          "height": 1536,
+          "bytes": 110238,
+          "alpha": true
+        }
+      ]
+    },
+    {
+      "id": "chr_zhou_work_half_thinking",
+      "version": "1.0.0",
+      "file": "/art/chr_zhou_work_half_thinking.bddbf10fb3f2.webp",
+      "url": "/art/chr_zhou_work_half_thinking.bddbf10fb3f2.webp",
+      "format": "webp",
+      "sha256": "bddbf10fb3f28977a0a72c930042a9c3dc79e1072f2a0c0239b520383d968dcb",
+      "width": 768,
+      "height": 1024,
+      "bytes": 61496,
+      "alpha": true,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 20,
+      "type": "character",
+      "characterId": "zhou",
+      "outfitId": "work",
+      "poseId": "half",
+      "expressionId": "thinking",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.25
+      },
+      "faceSafeBox": {
+        "x": 0.24,
+        "y": 0.04,
+        "w": 0.52,
+        "h": 0.37
+      },
+      "safeArea": {
+        "x": 0.05,
+        "y": 0,
+        "w": 0.9,
+        "h": 1
+      },
+      "fallbackId": "avatar_zhou_neutral",
+      "alt": "周砚的思考表情半身立绘",
+      "sourceHash": "1c120e12cd776937a1cecc024a88901a242dc6f8cd79690959c5d4bd4eeeafa7",
+      "variants": [
+        {
+          "id": "chr_zhou_work_half_thinking_2x",
+          "version": "1.0.0",
+          "file": "/art/chr_zhou_work_half_thinking_2x.82f8136a23be.webp",
+          "url": "/art/chr_zhou_work_half_thinking_2x.82f8136a23be.webp",
+          "format": "webp",
+          "sha256": "82f8136a23be7dce6a7d0e6b8c3c94a61f62ead36dc85ff5d92ceb5a06f3c5e8",
+          "width": 1152,
+          "height": 1536,
+          "bytes": 107216,
+          "alpha": true
+        }
+      ]
+    },
+    {
+      "id": "chr_zhou_work_half_serious",
+      "version": "1.0.0",
+      "file": "/art/chr_zhou_work_half_serious.1d4fb7387b41.webp",
+      "url": "/art/chr_zhou_work_half_serious.1d4fb7387b41.webp",
+      "format": "webp",
+      "sha256": "1d4fb7387b4189beb5624b1a2153123ed372c588a34d015a42ab3f9b96a47e74",
+      "width": 768,
+      "height": 1024,
+      "bytes": 61792,
+      "alpha": true,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 20,
+      "type": "character",
+      "characterId": "zhou",
+      "outfitId": "work",
+      "poseId": "half",
+      "expressionId": "serious",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.25
+      },
+      "faceSafeBox": {
+        "x": 0.24,
+        "y": 0.04,
+        "w": 0.52,
+        "h": 0.37
+      },
+      "safeArea": {
+        "x": 0.05,
+        "y": 0,
+        "w": 0.9,
+        "h": 1
+      },
+      "fallbackId": "avatar_zhou_neutral",
+      "alt": "周砚的严肃表情半身立绘",
+      "sourceHash": "51a610bce9821eba294485f913e4b7b5c4efd92d02bd07e1c4bed835a4273c18",
+      "variants": [
+        {
+          "id": "chr_zhou_work_half_serious_2x",
+          "version": "1.0.0",
+          "file": "/art/chr_zhou_work_half_serious_2x.ac0adc09a1a9.webp",
+          "url": "/art/chr_zhou_work_half_serious_2x.ac0adc09a1a9.webp",
+          "format": "webp",
+          "sha256": "ac0adc09a1a9321decaa5299214000d27d596a646025abc202990239473d48dc",
+          "width": 1152,
+          "height": 1536,
+          "bytes": 107774,
+          "alpha": true
+        }
+      ]
+    },
+    {
+      "id": "chr_xu_work_half_neutral",
+      "version": "1.0.0",
+      "file": "/art/chr_xu_work_half_neutral.1a178fec7ac4.webp",
+      "url": "/art/chr_xu_work_half_neutral.1a178fec7ac4.webp",
+      "format": "webp",
+      "sha256": "1a178fec7ac4b079fc4e57b9b3548ba4672774b9df436ecf51158823eda35ffa",
+      "width": 768,
+      "height": 1024,
+      "bytes": 135864,
+      "alpha": true,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 20,
+      "type": "character",
+      "characterId": "xu",
+      "outfitId": "work",
+      "poseId": "half",
+      "expressionId": "neutral",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.25
+      },
+      "faceSafeBox": {
+        "x": 0.24,
+        "y": 0.04,
+        "w": 0.52,
+        "h": 0.37
+      },
+      "safeArea": {
+        "x": 0.05,
+        "y": 0,
+        "w": 0.9,
+        "h": 1
+      },
+      "fallbackId": "avatar_xu_neutral",
+      "alt": "许知的平静表情半身立绘",
+      "sourceHash": "6f82a629c71f58278537eb7179b301dfb0101ba7f5c5d1746593433c07cc9585",
+      "variants": [
+        {
+          "id": "chr_xu_work_half_neutral_2x",
+          "version": "1.0.0",
+          "file": "/art/chr_xu_work_half_neutral_2x.0c089b0b5086.webp",
+          "url": "/art/chr_xu_work_half_neutral_2x.0c089b0b5086.webp",
+          "format": "webp",
+          "sha256": "0c089b0b5086153ae23ebe9334d07552f4f1507364bd07f12914613a0ac257d7",
+          "width": 1152,
+          "height": 1536,
+          "bytes": 240556,
+          "alpha": true
+        }
+      ]
+    },
+    {
+      "id": "avatar_xu_neutral",
+      "version": "1.0.0",
+      "file": "/art/avatar_xu_neutral.832e0a23fc06.webp",
+      "url": "/art/avatar_xu_neutral.832e0a23fc06.webp",
+      "format": "webp",
+      "sha256": "832e0a23fc063eb28f8140685613d1f9054e2908dda9fbf50514e85b784684f8",
+      "width": 128,
+      "height": 128,
+      "bytes": 8286,
+      "alpha": true,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 50,
+      "type": "avatar",
+      "characterId": "xu",
+      "expressionId": "neutral",
+      "sourceAssetId": "chr_xu_work_half_neutral",
+      "crop": {
+        "left": 217,
+        "top": 51,
+        "width": 673,
+        "height": 673
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "safeArea": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "fallbackId": null,
+      "alt": "许知的同源头像",
+      "sourceHash": "6f82a629c71f58278537eb7179b301dfb0101ba7f5c5d1746593433c07cc9585",
+      "variants": [
+        {
+          "id": "avatar_xu_neutral_2x",
+          "version": "1.0.0",
+          "file": "/art/avatar_xu_neutral_2x.08b294bd5d3d.webp",
+          "url": "/art/avatar_xu_neutral_2x.08b294bd5d3d.webp",
+          "format": "webp",
+          "sha256": "08b294bd5d3d52970447b1ed01537cb73027779d77b35d94c48e28ffd4b38e1d",
+          "width": 256,
+          "height": 256,
+          "bytes": 22230,
+          "alpha": true
+        }
+      ]
+    },
+    {
+      "id": "chr_xu_work_half_relaxed",
+      "version": "1.0.0",
+      "file": "/art/chr_xu_work_half_relaxed.d9a9072102db.webp",
+      "url": "/art/chr_xu_work_half_relaxed.d9a9072102db.webp",
+      "format": "webp",
+      "sha256": "d9a9072102dbf5d72b9349c9fe2025e269bb909599b025a99ea43b53c0f2574d",
+      "width": 768,
+      "height": 1024,
+      "bytes": 95454,
+      "alpha": true,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 20,
+      "type": "character",
+      "characterId": "xu",
+      "outfitId": "work",
+      "poseId": "half",
+      "expressionId": "relaxed",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.25
+      },
+      "faceSafeBox": {
+        "x": 0.24,
+        "y": 0.04,
+        "w": 0.52,
+        "h": 0.37
+      },
+      "safeArea": {
+        "x": 0.05,
+        "y": 0,
+        "w": 0.9,
+        "h": 1
+      },
+      "fallbackId": "avatar_xu_neutral",
+      "alt": "许知的轻松表情半身立绘",
+      "sourceHash": "41fdc57402a9c116d814ec13e2fc542ebd092523d795cb609f6cbeec443d867c",
+      "variants": [
+        {
+          "id": "chr_xu_work_half_relaxed_2x",
+          "version": "1.0.0",
+          "file": "/art/chr_xu_work_half_relaxed_2x.424cc46b5305.webp",
+          "url": "/art/chr_xu_work_half_relaxed_2x.424cc46b5305.webp",
+          "format": "webp",
+          "sha256": "424cc46b5305117c92216277d01bf83206dcbad25beb8609f507a885b259cec6",
+          "width": 1152,
+          "height": 1536,
+          "bytes": 163200,
+          "alpha": true
+        }
+      ]
+    },
+    {
+      "id": "chr_xu_work_half_thinking",
+      "version": "1.0.0",
+      "file": "/art/chr_xu_work_half_thinking.4b08560f566b.webp",
+      "url": "/art/chr_xu_work_half_thinking.4b08560f566b.webp",
+      "format": "webp",
+      "sha256": "4b08560f566b0c4386436440493ef893f5b373817cb39d5a321e9d877c71c00a",
+      "width": 768,
+      "height": 1024,
+      "bytes": 96578,
+      "alpha": true,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 20,
+      "type": "character",
+      "characterId": "xu",
+      "outfitId": "work",
+      "poseId": "half",
+      "expressionId": "thinking",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.25
+      },
+      "faceSafeBox": {
+        "x": 0.24,
+        "y": 0.04,
+        "w": 0.52,
+        "h": 0.37
+      },
+      "safeArea": {
+        "x": 0.05,
+        "y": 0,
+        "w": 0.9,
+        "h": 1
+      },
+      "fallbackId": "avatar_xu_neutral",
+      "alt": "许知的思考表情半身立绘",
+      "sourceHash": "b0aa66f136d02761742dd36d2bab8b1dddc202d4156332a157f4df164231d483",
+      "variants": [
+        {
+          "id": "chr_xu_work_half_thinking_2x",
+          "version": "1.0.0",
+          "file": "/art/chr_xu_work_half_thinking_2x.c6861f1aea37.webp",
+          "url": "/art/chr_xu_work_half_thinking_2x.c6861f1aea37.webp",
+          "format": "webp",
+          "sha256": "c6861f1aea377b118cd74644f3a69688e9d91f16987228406dce24231172ecae",
+          "width": 1152,
+          "height": 1536,
+          "bytes": 164700,
+          "alpha": true
+        }
+      ]
+    },
+    {
+      "id": "chr_xu_work_half_serious",
+      "version": "1.0.0",
+      "file": "/art/chr_xu_work_half_serious.db7bfac90380.webp",
+      "url": "/art/chr_xu_work_half_serious.db7bfac90380.webp",
+      "format": "webp",
+      "sha256": "db7bfac9038028d1ce533cd56be2e864ae3dfeae5ad0b114a4aedfa95f66a417",
+      "width": 768,
+      "height": 1024,
+      "bytes": 96224,
+      "alpha": true,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 20,
+      "type": "character",
+      "characterId": "xu",
+      "outfitId": "work",
+      "poseId": "half",
+      "expressionId": "serious",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.25
+      },
+      "faceSafeBox": {
+        "x": 0.24,
+        "y": 0.04,
+        "w": 0.52,
+        "h": 0.37
+      },
+      "safeArea": {
+        "x": 0.05,
+        "y": 0,
+        "w": 0.9,
+        "h": 1
+      },
+      "fallbackId": "avatar_xu_neutral",
+      "alt": "许知的严肃表情半身立绘",
+      "sourceHash": "6b34f86f0860b25a83fae8d7ac5a88415effe0cee85c2fb9ad89a924ce92c0e4",
+      "variants": [
+        {
+          "id": "chr_xu_work_half_serious_2x",
+          "version": "1.0.0",
+          "file": "/art/chr_xu_work_half_serious_2x.34b89b99f2ef.webp",
+          "url": "/art/chr_xu_work_half_serious_2x.34b89b99f2ef.webp",
+          "format": "webp",
+          "sha256": "34b89b99f2ef9060bfb6e2a3001d0444f34f8ea96cfdc8c24fce976ac659277b",
+          "width": 1152,
+          "height": 1536,
+          "bytes": 164436,
+          "alpha": true
+        }
+      ]
+    },
+    {
+      "id": "bg_office_day_wide",
+      "version": "1.0.0",
+      "file": "/art/bg_office_day_wide.961571a8e0ca.webp",
+      "url": "/art/bg_office_day_wide.961571a8e0ca.webp",
+      "format": "webp",
+      "sha256": "961571a8e0ca14a9af7837f1353b295375f421bb82163bcd7021a9659f00f0ba",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 233468,
+      "alpha": false,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 0,
+      "type": "background",
+      "backgroundId": "office",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "focalPoint": {
+        "x": 0.55,
+        "y": 0.37
+      },
+      "safeArea": {
+        "x": 0.04,
+        "y": 0.7,
+        "w": 0.92,
+        "h": 0.27
+      },
+      "characterArea": {
+        "x": 0.35,
+        "y": 0.1,
+        "w": 0.4,
+        "h": 0.9
+      },
+      "cropArea": {
+        "x": 0.2,
+        "y": 0,
+        "w": 0.6,
+        "h": 1
+      },
+      "fallbackId": "theme-paper",
+      "alt": "栖木工作室的开放办公室",
+      "sourceHash": "0238360748db9d517db0424275a4a91b2568b69c75d7bc82f5a5108fc75080ad"
+    },
+    {
+      "id": "bg_meeting_day_wide",
+      "version": "1.0.0",
+      "file": "/art/bg_meeting_day_wide.6cdbf8641dfb.webp",
+      "url": "/art/bg_meeting_day_wide.6cdbf8641dfb.webp",
+      "format": "webp",
+      "sha256": "6cdbf8641dfb802f2efd9bbf5dd4bae273d2117b1b9845aeea965793a70a3c11",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 140836,
+      "alpha": false,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 0,
+      "type": "background",
+      "backgroundId": "meeting",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "focalPoint": {
+        "x": 0.55,
+        "y": 0.37
+      },
+      "safeArea": {
+        "x": 0.04,
+        "y": 0.7,
+        "w": 0.92,
+        "h": 0.27
+      },
+      "characterArea": {
+        "x": 0.35,
+        "y": 0.1,
+        "w": 0.4,
+        "h": 0.9
+      },
+      "cropArea": {
+        "x": 0.2,
+        "y": 0,
+        "w": 0.6,
+        "h": 1
+      },
+      "fallbackId": "theme-paper",
+      "alt": "栖木工作室的会议角",
+      "sourceHash": "a00c74cec700b382b000a42ebb9966371f6f45e175bc696149f8e1b41ed043ec"
+    },
+    {
+      "id": "bg_testing_day_wide",
+      "version": "1.0.0",
+      "file": "/art/bg_testing_day_wide.1d7f17eead19.webp",
+      "url": "/art/bg_testing_day_wide.1d7f17eead19.webp",
+      "format": "webp",
+      "sha256": "1d7f17eead19cf2e0be6ca905f1edf864b117c7db32fd2e3bddad16640cadf62",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 193494,
+      "alpha": false,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 0,
+      "type": "background",
+      "backgroundId": "testing",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "focalPoint": {
+        "x": 0.55,
+        "y": 0.37
+      },
+      "safeArea": {
+        "x": 0.04,
+        "y": 0.7,
+        "w": 0.92,
+        "h": 0.27
+      },
+      "characterArea": {
+        "x": 0.35,
+        "y": 0.1,
+        "w": 0.4,
+        "h": 0.9
+      },
+      "cropArea": {
+        "x": 0.2,
+        "y": 0,
+        "w": 0.6,
+        "h": 1
+      },
+      "fallbackId": "theme-paper",
+      "alt": "栖木工作室的测试实验区",
+      "sourceHash": "438d99e6e26f0d3b62c9044e8230ea2483d7264245b921f550784f12cf985b33"
+    },
+    {
+      "id": "bg_terrace_day_wide",
+      "version": "1.0.0",
+      "file": "/art/bg_terrace_day_wide.8ce12cf12984.webp",
+      "url": "/art/bg_terrace_day_wide.8ce12cf12984.webp",
+      "format": "webp",
+      "sha256": "8ce12cf129845901e4a32e591a5e18dbcae6b002656c8a456cb12bbde607ee0f",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 251010,
+      "alpha": false,
+      "reviewStatus": "agent-reviewed",
+      "reviewedBy": "Codex visual inspection; no human review claimed",
+      "rights": {
+        "sourceType": "ai-generated",
+        "licenseRecordId": "asset-ai-2026-10-08",
+        "redistributionApproved": true
+      },
+      "generationTool": "image_gen.imagegen",
+      "model": null,
+      "modelDisclosure": "Tool did not expose model/version or seed",
+      "generationRecord": "art/manifests/generation-log.json",
+      "layer": 0,
+      "type": "background",
+      "backgroundId": "terrace",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "focalPoint": {
+        "x": 0.55,
+        "y": 0.37
+      },
+      "safeArea": {
+        "x": 0.04,
+        "y": 0.7,
+        "w": 0.92,
+        "h": 0.27
+      },
+      "characterArea": {
+        "x": 0.35,
+        "y": 0.1,
+        "w": 0.4,
+        "h": 0.9
+      },
+      "cropArea": {
+        "x": 0.2,
+        "y": 0,
+        "w": 0.6,
+        "h": 1
+      },
+      "fallbackId": "theme-paper",
+      "alt": "栖木工作室的露台",
+      "sourceHash": "6f05eccd4754f943554d8ab18a29173d811508832aadd7716d44eff8628f516d"
+    }
+  ],
+  "budget": {
+    "primaryBytes": 1885724,
+    "allVariantBytes": 3769402,
+    "firstSceneBytes": 363266,
+    "maxPrimaryBytes": 251010,
+    "targetFirstSceneBytes": 2500000,
+    "targetPackBytes": 12000000
+  },
+  "publishedDate": "2026-10-08",
+  "reviewedBy": "Codex agent; no human review claimed"
+}

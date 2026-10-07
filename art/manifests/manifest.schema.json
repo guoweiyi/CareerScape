@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://careerscape.local/schemas/art-manifest-v1.json",
+  "title": "CareerScape immutable art manifest",
+  "type": "object",
+  "required": ["schemaVersion", "id", "version", "semanticVersion", "status", "assets", "budget"],
+  "properties": {
+    "schemaVersion": {"enum": ["1.0", "1.1"]},
+    "id": {"const": "careerscape-art"},
+    "version": {"type": "string", "pattern": "^careerscape-art-v[0-9]+$"},
+    "semanticVersion": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "status": {"enum": ["draft", "published"]},
+    "assets": {"type": "array", "minItems": 19, "items": {"$ref": "#/$defs/asset"}},
+    "budget": {"type": "object", "required": ["primaryBytes", "allVariantBytes", "firstSceneBytes", "maxPrimaryBytes"], "additionalProperties": {"type": "integer", "minimum": 0}}
+  },
+  "$defs": {
+    "point": {"type": "object", "required": ["x", "y"], "properties": {"x": {"type": "number", "minimum": 0, "maximum": 1}, "y": {"type": "number", "minimum": 0, "maximum": 1}}},
+    "file": {"type": "object", "required": ["id", "version", "file", "url", "format", "sha256", "width", "height", "bytes", "alpha"], "properties": {
+      "id": {"type": "string", "pattern": "^[a-z0-9_]+$"}, "version": {"type": "string"},
+      "file": {"type": "string", "pattern": "^/art/[a-z0-9_]+\\.[a-f0-9]{12}\\.webp$"}, "url": {"type": "string", "pattern": "^/art/[a-z0-9_]+\\.[a-f0-9]{12}\\.webp$"},
+      "format": {"const": "webp"}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+      "width": {"type": "integer", "minimum": 1}, "height": {"type": "integer", "minimum": 1}, "bytes": {"type": "integer", "minimum": 1}, "alpha": {"type": "boolean"}
+    }},
+    "asset": {"allOf": [{"$ref": "#/$defs/file"}], "required": ["type", "rights", "reviewStatus", "layer", "anchor", "focalPoint", "safeArea", "fallbackId", "alt", "sourceHash"], "properties": {
+      "type": {"enum": ["character", "avatar", "background"]}, "layer": {"type": "integer", "minimum": 0},
+      "anchor": {"$ref": "#/$defs/point"}, "focalPoint": {"$ref": "#/$defs/point"}, "safeArea": {"type": "object"}, "fallbackId": {"type": ["string", "null"]}, "alt": {"type": "string", "minLength": 1},
+      "characterId": {"enum": ["lin", "zhou", "xu"]}, "expressionId": {"enum": ["neutral", "relaxed", "thinking", "serious"]},
+      "reviewStatus": {"const": "agent-reviewed"}, "sourceHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+      "rights": {"type": "object", "required": ["sourceType", "licenseRecordId", "redistributionApproved"], "properties": {"sourceType": {"const": "ai-generated"}, "licenseRecordId": {"const": "asset-ai-2026-10-08"}, "redistributionApproved": {"const": true}}},
+      "variants": {"oneOf": [{"type": "array", "items": {"$ref": "#/$defs/file"}}, {"type": "object", "properties": {"retina": {"$ref": "#/$defs/file"}, "mobile": {"$ref": "#/$defs/file"}}, "additionalProperties": false}]}
+    }}
+  }
+}

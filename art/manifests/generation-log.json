@@ -1,0 +1,677 @@
+{
+  "date": "2026-10-08",
+  "timezone": "Asia/Shanghai",
+  "purpose": "CareerScape original fictional software QA pack",
+  "records": [
+    {
+      "id": "style-board",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [],
+      "prompt": "Use case: illustration-story.\nAsset type: visual direction reference board for an original Chinese career exploration visual novel CareerScape.\nCreate one polished visual style board without written text: warm contemporary small software studio interior, clean delicate linework, low saturation flat color with soft painted shading, lightly realistic 2D adults, expressive human faces. Board includes an airy original office scene with plants and late afternoon window light, and a waist-up character concept of an original adult Chinese woman QA lead, age 30, oval face, dark brown low ponytail, cream long sleeve blouse under a muted forest green vest, no jewelry, calm attentive expression. Palette paper cream #F7F4EE, forest #285B4B, ink #20332D, terracotta #A64732, muted sage. Friendly understated everyday workplace, humane and lived in. Landscape board with clean divisions, no text, logos, icons, brands, watermark, romance tropes or childlike faces. Original fictional people, no real person likeness.",
+      "outputId": "exec-35c3d5cb-f4a0-44e2-b23c-2a318a0dfed0.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "低饱和都市色板、职场生活空间、成年人物基准清晰。"
+      },
+      "output": {
+        "file": "art/source/style-board.0a3c42dae44e.png",
+        "sha256": "0a3c42dae44e2ed7abaa95e1d9a8cc15adfb58ffeacd3550f3b329722239bb89",
+        "bytes": 2413287,
+        "width": 1536,
+        "height": 1024,
+        "alpha": false
+      }
+    },
+    {
+      "id": "lin-neutral",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "style-board"
+      ],
+      "prompt": "Use case: illustration-story. Asset type: one transparent visual novel character master.\nInput image 1 is the approved original visual direction and character identity reference. Make ONE adult original Chinese woman Lin Cheng 林澄, age 30, senior software QA, matching the reference woman: oval face, almond dark brown eyes, natural mature proportions, dark brown low ponytail with side swept loose bangs, cream collared long sleeve blouse, muted forest-green V neck sleeveless knitted vest, no jewelry.\nSingle half-body portrait on genuinely transparent background, portrait 3:4 canvas approximately 1536x2048. Fixed near frontal three-quarter view, eyes look gently toward viewer, head upright and shoulders level. Neutral calm expression, lips gently closed, relaxed brows. From head to mid-hip, both arms naturally downward, hands fully out of frame. Top of hair at 7% height, face center at (50%,22%), body bottom reaches 100%, shoulders contained in middle 76% of width. No props.\nClean delicate linework, low saturation warm urban 2D lightly realistic visual-novel painting, soft painted shading, warm neutral diffuse light. Preserve subtle human adult facial features. NO white rectangular background, NO backdrop, NO floor shadow, no text, logo, watermark, multiple panels or extra people.",
+      "outputId": "exec-f72231b4-d328-4dbd-94a7-f589cb2423c2.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "脸型、发型、固定服装和半身构图匹配；双手不承担叙事；表情可区分；透明轮廓完整。"
+      },
+      "output": {
+        "file": "art/source/lin-neutral.8d5effe88208.png",
+        "sha256": "8d5effe8820887329cebb13d2729efac9b423c2715affadf59eb342c0258fd7e",
+        "bytes": 1785407,
+        "width": 1086,
+        "height": 1448,
+        "alpha": true
+      }
+    },
+    {
+      "id": "office",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "style-board"
+      ],
+      "prompt": "Use case: illustration-story. Asset type: original visual novel office background.\nUse image 1 as style reference only. Create one wide 16:9 scene of fictional small software studio Qimu's open office in late afternoon, warm urban clean fine linework, low saturation cream/forest green/sage/terracotta palette, 2D lightly realistic soft painted shading. No people.\nLarge windows on right show softened distant city, cozy small team workstations with normal monitors and laptops showing abstract indistinct UI shapes; simple chairs, plants, notebooks, one calm green sofa in rear, whiteboard with blank blocks. Eye height view, believable practical workplace not luxury. Lower 30% low detail for dialogue overlay; middle center-right 35%-75% width clear floor and plain unobtrusive wall for a half-body character. Visual focus window and workstations at (0.55,0.37), central 50% must remain readable in phone cropping. Soft daylight, airy balanced composition, clear scene depth, not dark, no bokeh blur.\nDo not render readable words, logos, real brand marks, identifiable people, watermarks, company secrets or UI text. Single frame, no board/collage.",
+      "outputId": "exec-be308433-9a82-413b-9741-928dbdd1f45f.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "工作场所可辨认，未发现可读品牌文字或真实公司标识；下部留白可承载对话。"
+      },
+      "output": {
+        "file": "art/source/office.0238360748db.png",
+        "sha256": "0238360748db9d517db0424275a4a91b2568b69c75d7bc82f5a5108fc75080ad",
+        "bytes": 2488690,
+        "width": 1672,
+        "height": 940,
+        "alpha": false
+      }
+    },
+    {
+      "id": "lin-relaxed",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "lin-neutral"
+      ],
+      "prompt": "Use case: identity-preserve. Asset type: transparent visual-novel expression variant.\nEdit the supplied APPROVED original Lin Cheng neutral character master. Change ONLY facial expression to RELAXED: gently smiling with mouth closed, warmer softened eyes, relaxed eyebrows. This is the SAME adult 30-year-old Chinese woman with dark low ponytail, cream collared blouse and green knit V-neck vest. Preserve exact face shape, age, hair, skin color, clothing folds, viewpoint, pose, shoulders, lighting, canvas size, transparent alpha background and the exact pixel position/scale of head and body. Keep all non-face pixels unchanged if possible. No hand changes, no props, no background. Original close natural waist-up portrait. Output ONE image only.",
+      "outputId": "exec-5a5695c0-cb4a-4a20-9dd6-36cc27a8ee7f.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "脸型、发型、固定服装和半身构图匹配；双手不承担叙事；表情可区分；透明轮廓完整。"
+      },
+      "output": {
+        "file": "art/source/lin-relaxed.529e4d9d5f70.png",
+        "sha256": "529e4d9d5f70000c9621b40faff7245c18b7d5bf9a274cf47c73e3929291c92c",
+        "bytes": 1633286,
+        "width": 1086,
+        "height": 1448,
+        "alpha": true
+      }
+    },
+    {
+      "id": "lin-thinking",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "lin-neutral"
+      ],
+      "prompt": "Use case: identity-preserve. Asset type: transparent visual-novel expression variant.\nEdit the supplied APPROVED original Lin Cheng neutral character master. Change ONLY facial expression to THINKING: gaze shifts slightly to her left, lips gently pursed closed, one eyebrow very subtly raised with a thoughtful small crease. SAME adult 30-year-old Chinese woman with dark low ponytail, cream collared blouse and green knit V-neck vest. Preserve exact face shape, age, hair, skin color, clothing folds, viewpoint, pose, shoulders, lighting, canvas size, transparent alpha background and exact pixel position/scale of head and body. Keep all non-face pixels unchanged if possible. No touching chin, no hand changes, no props, no background. Output ONE image only.",
+      "outputId": "exec-0a8caf96-c363-4983-b300-e15ebbf8fa53.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "脸型、发型、固定服装和半身构图匹配；双手不承担叙事；表情可区分；透明轮廓完整。"
+      },
+      "output": {
+        "file": "art/source/lin-thinking.d4353991cef2.png",
+        "sha256": "d4353991cef2e2f695b1fc0ca6804503aeb4eea77f2d382c2e696e8d2074574a",
+        "bytes": 1623413,
+        "width": 1086,
+        "height": 1448,
+        "alpha": true
+      }
+    },
+    {
+      "id": "lin-serious",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "lin-neutral"
+      ],
+      "prompt": "Use case: identity-preserve. Asset type: transparent visual-novel expression variant.\nEdit the supplied APPROVED original Lin Cheng neutral character master. Change ONLY facial expression to SERIOUS: eyebrows slightly lowered with a restrained attentive crease, eyes focus directly toward viewer, mouth closed with a level firm line, composed professional concentration without hostility. SAME adult 30-year-old Chinese woman with dark low ponytail, cream collared blouse and green knit V-neck vest. Preserve exact face shape, age, hair, skin color, clothing folds, viewpoint, pose, shoulders, lighting, canvas size, transparent alpha background and exact pixel position/scale of head and body. Keep all non-face pixels unchanged if possible. No touching chin, no hand changes, no props, no background. Output ONE image only.",
+      "outputId": "exec-a6b11c32-9291-4e43-ab9f-6ea5a871dc80.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "脸型、发型、固定服装和半身构图匹配；双手不承担叙事；表情可区分；透明轮廓完整。"
+      },
+      "output": {
+        "file": "art/source/lin-serious.a60d9c51bd7f.png",
+        "sha256": "a60d9c51bd7fe70054999e16d9efe1fcfab22f83c815a203a8993a5a4ff53f36",
+        "bytes": 1629708,
+        "width": 1086,
+        "height": 1448,
+        "alpha": true
+      }
+    },
+    {
+      "id": "zhou-neutral",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "style-board"
+      ],
+      "prompt": "Use case: illustration-story. Asset type: ONE transparent original visual novel adult character master.\nUse provided style board only as artistic reference. Create a DISTINCT ORIGINAL MAN, Zhou Yan 周砚, age 28, software developer: mature subtly angular rectangular face, straight brows, dark brown eyes, short slightly tousled BLACK hair with tidy sides, warm light-medium skin, lean average adult physique. He wears a plain deep navy blue long sleeve workwear shirt, open collar with simple off-white crewneck underneath, two modest chest pockets, sleeves unrolled. No glasses, jewelry, namebadge, props or logos.\nSingle half-body portrait, portrait 3:4 canvas. Near frontal three-quarter view same framing scale as style reference, head upright, eyes calmly at viewer, lips closed and neutral relaxed brows, shoulders level. From head to mid-hip with both arms naturally downward, hands out of frame. Top of hair at 4% height, face center at (50%,25%), body bottom reaches 100%, shoulders contained in 80% width.\nWarm urban low-saturation 2D lightly realistic painting, fine clean linework, soft delicate shading, neutral diffuse light, forest cream muted accent harmony. Genuinely transparent alpha background, no white backdrop, no floor shadow, no words, watermark or extra people. Character must look adult, competent but approachable, not a fashion pose.",
+      "outputId": "exec-25ba72e7-40da-456c-af8f-502924e18439.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "脸型、发型、固定服装和半身构图匹配；双手不承担叙事；表情可区分；透明轮廓完整。"
+      },
+      "output": {
+        "file": "art/source/zhou-neutral.cf61e1800c13.png",
+        "sha256": "cf61e1800c1387af8188d95e7388467897d97e09ec8af5928b7e63b04714b7e1",
+        "bytes": 1881371,
+        "width": 1086,
+        "height": 1448,
+        "alpha": true
+      }
+    },
+    {
+      "id": "zhou-relaxed",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "zhou-neutral"
+      ],
+      "prompt": "Use case: identity-preserve. Asset type: transparent visual-novel expression variant.\nEdit supplied APPROVED Zhou Yan neutral character master. Change ONLY facial expression to RELAXED: a small warm closed-mouth smile and softened eyebrows/eyes. SAME original adult Chinese man age 28, short tousled black hair, navy workwear overshirt with two pockets over off-white T-shirt. Preserve exact face shape, skin, age, hair, clothes and folds, pose, shoulders, viewpoint, warm diffuse light, transparent background, canvas size, exact head and body position/scale. Keep non-face pixels unchanged. No change of hands, no props or accessories, no extra people or backdrop. One image.",
+      "outputId": "exec-769e50d5-d1f2-43f2-a4c5-2501f4971309.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "脸型、发型、固定服装和半身构图匹配；双手不承担叙事；表情可区分；透明轮廓完整。"
+      },
+      "output": {
+        "file": "art/source/zhou-relaxed.7c117e1c3432.png",
+        "sha256": "7c117e1c343254e18049ca723f813ea9008075ec142c30b54c1d0a363862ebe8",
+        "bytes": 1673565,
+        "width": 1086,
+        "height": 1448,
+        "alpha": true
+      }
+    },
+    {
+      "id": "zhou-thinking",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "zhou-neutral"
+      ],
+      "prompt": "Use case: identity-preserve. Asset type: transparent visual-novel expression variant.\nEdit supplied APPROVED Zhou Yan neutral character master. Change ONLY facial expression to THINKING: gaze a little toward his right, closed lips gently pressed, eyebrows drawn together very slightly in thoughtful concentration. SAME original adult Chinese man age 28, short tousled black hair, navy workwear overshirt with two pockets over off-white T-shirt. Preserve exact face shape, skin, age, hair, clothes and folds, pose, shoulders, viewpoint, warm diffuse light, transparent background, canvas size, exact head and body position/scale. Keep non-face pixels unchanged. No hand gestures, no props/accessories, no backdrop. One image.",
+      "outputId": "exec-2b4c31e6-a50d-4499-9b61-0e20bb3cb669.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "脸型、发型、固定服装和半身构图匹配；双手不承担叙事；表情可区分；透明轮廓完整。"
+      },
+      "output": {
+        "file": "art/source/zhou-thinking.1c120e12cd77.png",
+        "sha256": "1c120e12cd776937a1cecc024a88901a242dc6f8cd79690959c5d4bd4eeeafa7",
+        "bytes": 1646774,
+        "width": 1086,
+        "height": 1448,
+        "alpha": true
+      }
+    },
+    {
+      "id": "zhou-serious",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "zhou-neutral"
+      ],
+      "prompt": "Use case: identity-preserve. Asset type: transparent visual-novel expression variant.\nEdit supplied APPROVED Zhou Yan neutral character master. Change ONLY facial expression to SERIOUS: focused direct gaze, slightly lowered eyebrows, firmly closed straight lips, composed alert concentration without anger. SAME original adult Chinese man age 28, short tousled black hair, navy workwear overshirt with two pockets over off-white T-shirt. Preserve exact face shape, skin, age, hair, clothes and folds, pose, shoulders, viewpoint, warm diffuse light, transparent background, canvas size, exact head and body position/scale. Keep non-face pixels unchanged. No hand gestures, no props/accessories, no backdrop. One image.",
+      "outputId": "exec-c4070788-9cd5-488e-bc1d-199de6cee524.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "脸型、发型、固定服装和半身构图匹配；双手不承担叙事；表情可区分；透明轮廓完整。"
+      },
+      "output": {
+        "file": "art/source/zhou-serious.51a610bce982.png",
+        "sha256": "51a610bce9821eba294485f913e4b7b5c4efd92d02bd07e1c4bed835a4273c18",
+        "bytes": 1668707,
+        "width": 1086,
+        "height": 1448,
+        "alpha": true
+      }
+    },
+    {
+      "id": "xu-neutral",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "style-board"
+      ],
+      "prompt": "Use case: illustration-story. Asset type: ONE transparent original visual novel adult character master.\nUse supplied style board as artistic reference only. Create a distinct ORIGINAL adult Chinese woman Xu Zhi 许知, age 29, product manager. Shoulder length softly straight deep chestnut brown hair with side part, ends slightly inward; mature softly round face with gently broad cheeks, small straight nose, brown eyes, light-medium warm skin, average adult physique. Wardrobe: muted TERRACOTTA open knitted cardigan with plain cream crewneck shirt beneath, no necklace, glasses, jewelry, namebadge, props or logos.\nSingle half-body portrait, portrait 3:4 canvas. Fixed near frontal three-quarter view, head upright, calm neutral closed mouth, eyes gently facing viewer, level shoulders. From head to mid-hip, both arms naturally downward, hands outside frame. Top of hair at 4% height, face center (50%,25%), lower body ends at canvas bottom, shoulders within 80% width. Genuinely transparent alpha background.\nWarm urban low saturation lightly realistic 2D visual novel painting matching reference, clean delicate fine linework, soft painted shading, warm diffuse light, cream paper forest terracotta palette. Adult and approachable, differentiated from the ponytail woman in reference. No text, logo, watermark, background, shadow, extra people or panels.",
+      "outputId": "exec-03c327e2-0855-4b7c-98b0-1a2ef1b99df6.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "脸型、发型、固定服装和半身构图匹配；双手不承担叙事；表情可区分；透明轮廓完整。"
+      },
+      "output": {
+        "file": "art/source/xu-neutral.6f82a629c71f.png",
+        "sha256": "6f82a629c71f58278537eb7179b301dfb0101ba7f5c5d1746593433c07cc9585",
+        "bytes": 2026344,
+        "width": 1086,
+        "height": 1448,
+        "alpha": true
+      }
+    },
+    {
+      "id": "xu-relaxed",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "xu-neutral"
+      ],
+      "prompt": "Use case: identity-preserve. Asset type: transparent visual-novel expression variant.\nEdit supplied APPROVED Xu Zhi neutral character master. Change ONLY facial expression to RELAXED: warm closed-mouth smile with corners gently lifted, softened eyes and relaxed eyebrows. SAME original adult Chinese woman age 29, shoulder-length dark chestnut hair, terracotta knitted open cardigan over cream T-shirt. Preserve exact face shape, skin, age, hair, clothes/folds/texture, pose, shoulders, viewpoint, warm diffuse light, transparent alpha background, canvas size and exact head/body position and scale. Keep non-face pixels unchanged. No hand gestures, no props/accessories, no backdrop. ONE image.",
+      "outputId": "exec-d0136b0a-8cdc-45c5-954d-5356da92d6b6.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "脸型、发型、固定服装和半身构图匹配；双手不承担叙事；表情可区分；透明轮廓完整。"
+      },
+      "output": {
+        "file": "art/source/xu-relaxed.41fdc57402a9.png",
+        "sha256": "41fdc57402a9c116d814ec13e2fc542ebd092523d795cb609f6cbeec443d867c",
+        "bytes": 1859781,
+        "width": 1086,
+        "height": 1448,
+        "alpha": true
+      }
+    },
+    {
+      "id": "xu-thinking",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "xu-neutral"
+      ],
+      "prompt": "Use case: identity-preserve. Asset type: transparent visual-novel expression variant.\nEdit supplied APPROVED Xu Zhi neutral character master. Change ONLY facial expression to THINKING: eyes look slightly upward to her right, one eyebrow subtly raised, closed lips gently pursed, inquisitive careful consideration. SAME original adult Chinese woman age 29, shoulder-length dark chestnut hair, terracotta knitted open cardigan over cream T-shirt. Preserve exact face shape, skin, age, hair, clothes/folds/texture, pose, shoulders, viewpoint, warm diffuse light, transparent alpha background, canvas size and exact head/body position and scale. Keep non-face pixels unchanged. No hand gestures, no props/accessories, no backdrop. ONE image.",
+      "outputId": "exec-e0a6595d-7b3e-4431-b61d-b6028bea6e48.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "脸型、发型、固定服装和半身构图匹配；双手不承担叙事；表情可区分；透明轮廓完整。"
+      },
+      "output": {
+        "file": "art/source/xu-thinking.b0aa66f136d0.png",
+        "sha256": "b0aa66f136d02761742dd36d2bab8b1dddc202d4156332a157f4df164231d483",
+        "bytes": 1864095,
+        "width": 1086,
+        "height": 1448,
+        "alpha": true
+      }
+    },
+    {
+      "id": "xu-serious",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "xu-neutral"
+      ],
+      "prompt": "Use case: identity-preserve. Asset type: transparent visual-novel expression variant.\nEdit supplied APPROVED Xu Zhi neutral character master. Change ONLY facial expression to SERIOUS: focused direct eyes, gently lowered straight eyebrows, closed firm neutral lips, composed intent attention without hostility. SAME original adult Chinese woman age 29, shoulder-length dark chestnut hair, terracotta knitted open cardigan over cream T-shirt. Preserve exact face shape, skin, age, hair, clothes/folds/texture, pose, shoulders, viewpoint, warm diffuse light, transparent alpha background, canvas size and exact head/body position and scale. Keep non-face pixels unchanged. No hand gestures, no props/accessories, no backdrop. ONE image.",
+      "outputId": "exec-181b4b40-9886-47c6-9b8c-635b07c78594.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "脸型、发型、固定服装和半身构图匹配；双手不承担叙事；表情可区分；透明轮廓完整。"
+      },
+      "output": {
+        "file": "art/source/xu-serious.6b34f86f0860.png",
+        "sha256": "6b34f86f0860b25a83fae8d7ac5a88415effe0cee85c2fb9ad89a924ce92c0e4",
+        "bytes": 1862101,
+        "width": 1086,
+        "height": 1448,
+        "alpha": true
+      }
+    },
+    {
+      "id": "meeting",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "style-board"
+      ],
+      "prompt": "Use case: illustration-story. Asset type: visual novel background for fictional Qimu software studio.\nUse supplied style board as style reference only. One landscape wide 16:9 original contemporary small team meeting corner, late afternoon. A modest oval light oak meeting table on LEFT-middle with four simple chairs, two closed laptops, one small notebook; rear cream wall with a large mostly blank whiteboard having only abstract colored sticky notes, no marks or text; dark slender glazed partition, a small plant; right-side windows with warm urban daylight. Quiet practical meeting place, no people, not corporate luxury. Clear open lower foreground occupying bottom 30%, middle-right region simple low detail for character overlay. Focus at (0.55,0.37). Useful central phone crop, preserve original fine clean linework, 2D lightly realistic illustration, restrained warm cream forest green terracotta palette, soft natural painterly light. No readable text, logos, company marks, visible documents, watermarks, collage or inserted characters.",
+      "outputId": "exec-92995621-2aa4-4c21-a50c-7528967cb144.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "工作场所可辨认，未发现可读品牌文字或真实公司标识；下部留白可承载对话。"
+      },
+      "output": {
+        "file": "art/source/meeting.a00c74cec700.png",
+        "sha256": "a00c74cec700b382b000a42ebb9966371f6f45e175bc696149f8e1b41ed043ec",
+        "bytes": 1966806,
+        "width": 1672,
+        "height": 941,
+        "alpha": false
+      }
+    },
+    {
+      "id": "testing",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "style-board"
+      ],
+      "prompt": "Use case: illustration-story. Asset type: visual novel background for fictional Qimu software studio.\nUse supplied style board as style reference only. One landscape wide 16:9 original software testing area inside a modest small studio, late afternoon. Left and rear: clean practical long workbench with a few ordinary unlabeled smartphones and tablets in stands, two monitors with only abstract simple colored interface blocks, neatly managed cables, a compact shelf holding spare keyboards and closed device cases. A paper checklist is face down. This is a SOFTWARE QA device test desk, NOT a chemistry laboratory, no lab equipment, no lab coats. Open lower foreground bottom 30% for dialogue overlay, center-right 35%-75% width visually simple for half-body characters. Right window and a small healthy plant, warm gentle daylight, clear eye level perspective. Focus device desk at (0.5,0.38), central region useful for phone crop. Fine clean linework, 2D lightly realistic illustration, low-saturation warm cream/forest/sage palette with restrained terracotta accents. No people, logos, readable screen text, brand names, secrets, watermarks, collage.",
+      "outputId": "exec-e8147136-29a7-4e6c-bbc8-26717932f56a.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "工作场所可辨认，未发现可读品牌文字或真实公司标识；下部留白可承载对话。"
+      },
+      "output": {
+        "file": "art/source/testing.438d99e6e26f.png",
+        "sha256": "438d99e6e26f0d3b62c9044e8230ea2483d7264245b921f550784f12cf985b33",
+        "bytes": 2201206,
+        "width": 1672,
+        "height": 941,
+        "alpha": false
+      }
+    },
+    {
+      "id": "terrace",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "style-board"
+      ],
+      "prompt": "Use case: illustration-story. Asset type: visual novel background for fictional Qimu software studio.\nUse supplied style board as artistic reference only. One landscape wide 16:9 original small rooftop terrace connected to the same modest urban software studio. Late afternoon warm daylight approaching sunset, quiet space for taking a break and ending the workday. Left: glass office door and brick planter, simple wood bench with muted green seat; rear: safe waist-high solid parapet with potted greenery and an unobtrusive distant city skyline; right: small round outdoor table and two simple chairs. No people, no food or drink props, no flashy luxury. Clear open tiled foreground bottom 30% and central character standing area at 35%-75% width. Focus greenery skyline at (0.55,0.37), central view supports phone crop. Fine clean linework and soft painted shading in warm low-saturation cream forest sage terracotta palette, 2D lightly realistic visual-novel illustration matching reference. No readable text, logos, real buildings as landmarks, watermark, collage or close foreground objects.",
+      "outputId": "exec-c2b2afb5-3a1f-4ba2-87c3-2289b7e27d0e.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "工作场所可辨认，未发现可读品牌文字或真实公司标识；下部留白可承载对话。"
+      },
+      "output": {
+        "file": "art/source/terrace.6f05eccd4754.png",
+        "sha256": "6f05eccd4754f943554d8ab18a29173d811508832aadd7716d44eff8628f516d",
+        "bytes": 2544355,
+        "width": 1672,
+        "height": 941,
+        "alpha": false
+      }
+    },
+    {
+      "id": "office-mobile",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "office"
+      ],
+      "prompt": "Use case: identity-preserve. Asset type: mobile PORTRAIT 3:4 background composition for the SAME fictional Qimu software studio shown in reference.\nRecompose this original office into a NEW portrait 3:4 composition, approximately 1080x1440. Do not simply crop its center. Preserve the same warm 2D linework, cream/forest/sage materials, late afternoon light, same kinds of furnishings and no people. Move the nearer workstation and chair to the lower LEFT side, the recognizable green sofa toward the rear RIGHT, tall windows into upper right, plant and glass partition in upper/middle left, with a narrow open walking area in center. The scene should fit vertically with visibly coherent perspective and the workstation, sofa and windows readable together. Lower 25% low-detail warm floor reserved for dialogue; central 40% width at y .18-.70 is clear enough for character overlay. Emphasize room height and vertical layering, not panoramic breadth.\nNo readable words, brands, watermarks or added characters. One standalone portrait scene, not a frame or mockup.",
+      "outputId": "exec-48c0b4d1-8bcd-4711-8677-474d46ee9e9d.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "已逐张查看：独立竖屏重排构图，非横图中心裁切；与横版的场所、设施、光照和风格一致，下方有文字留白。"
+      },
+      "output": {
+        "file": "art/source/office-mobile.0cc89e81287f.png",
+        "sha256": "0cc89e81287fa0f6568c7f2f81a12ccedd3297538055dec4650fe21b0ed7691a",
+        "bytes": 2476461,
+        "width": 1086,
+        "height": 1448,
+        "alpha": false
+      }
+    },
+    {
+      "id": "meeting-mobile",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "meeting"
+      ],
+      "prompt": "Use case: identity-preserve. Asset type: mobile PORTRAIT 3:4 background composition for the SAME fictional Qimu studio meeting corner shown in reference.\nRecompose the original meeting scene into a NEW standalone portrait 3:4 composition approximately 1080x1440. Do not crop the landscape center. Preserve the same cream wall, green simple chairs, oval light oak table, whiteboard with blank green/terracotta notes, dark glass partition, tall window and plants, warm late afternoon light and fine soft 2D lightly realistic drawing style. For vertical composition, place the table diagonally in left-middle depth, with two front and two rear chairs visible, whiteboard on upper-left wall and tall window upper-right, narrow clear open floor in lower central region. Keep furnishings consistent, do not introduce extra rooms or decorations. Lower 25% low detail floor for dialogue overlay, central vertical standing area around x .55 suitable for one half-body character.\nNo people, no text, logos, watermarks or readable documents. One portrait environment, not a collage or mockup.",
+      "outputId": "exec-8af372fc-1fd3-4395-b737-d5b12203da0e.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "已逐张查看：独立竖屏重排构图，非横图中心裁切；与横版的场所、设施、光照和风格一致，下方有文字留白。"
+      },
+      "output": {
+        "file": "art/source/meeting-mobile.1d61ca7f13be.png",
+        "sha256": "1d61ca7f13beba4d69e188de3a217bd374fee706daa8186b3c870e53a2b94d88",
+        "bytes": 1996957,
+        "width": 1086,
+        "height": 1448,
+        "alpha": false
+      }
+    },
+    {
+      "id": "testing-mobile",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "testing"
+      ],
+      "prompt": "Use case: identity-preserve. Asset type: mobile PORTRAIT 3:4 background composition for the SAME fictional Qimu software-testing desk shown in reference.\nRecompose original device testing area into a NEW portrait 3:4 composition approximately 1080x1440. Do not simply crop landscape. Preserve software QA workstation identity: two monitors with indistinct abstract interface blocks, mobile phones and tablets on desk stands, neat cables, compact case/keyboard shelf, ordinary chairs, cream walls, forest/sage furniture, warm late afternoon window light. Arrange the workbench diagonally along left/rear with both monitors visible in upper-left-middle, shelf above, window and tall plant in upper-right, one chair visible left-lower middle. Keep clear lower center floor bottom 25% for dialogue, central vertical region around x .6 for a half-body character. Consistent warm fine-line 2D lightly realistic softly shaded visual-novel style. No chemical lab, no people, readable text, logos, watermarks or secrets. ONE standalone portrait scene.",
+      "outputId": "exec-9a85e718-70da-4d57-96a6-f6f370367281.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "已逐张查看：独立竖屏重排构图，非横图中心裁切；与横版的场所、设施、光照和风格一致，下方有文字留白。"
+      },
+      "output": {
+        "file": "art/source/testing-mobile.cef21d5811b2.png",
+        "sha256": "cef21d5811b2dbc045579eb8110354fe0d08641709025d9b38c6e7f79bf2cd14",
+        "bytes": 2290425,
+        "width": 1086,
+        "height": 1448,
+        "alpha": false
+      }
+    },
+    {
+      "id": "terrace-mobile",
+      "tool": "image_gen.imagegen",
+      "mode": "built-in",
+      "model": null,
+      "seed": null,
+      "unavailableMetadata": [
+        "model",
+        "modelVersion",
+        "seed"
+      ],
+      "generationDate": "2026-10-08",
+      "inputReferenceIds": [
+        "terrace"
+      ],
+      "prompt": "Use case: identity-preserve. Asset type: mobile PORTRAIT 3:4 background composition for the SAME fictional Qimu studio terrace in reference.\nRecompose original rooftop terrace into a NEW portrait 3:4 composition approximately 1080x1440. Do not crop the landscape center. Preserve the same safe solid parapet, ordinary city skyline in late afternoon, glass studio doorway, brick planter and green-seated simple bench, warm potted greenery, small round outdoor table and two chairs. Fit vertically: doorway narrow along left, bench in left-middle, parapet across rear-middle with skyline and warm sky above, round table and chairs clustered right-middle; clear vertical walking area and tiled floor bottom 25% for dialogue, central half-body character overlay. Same warm cream/sage/terracotta low-saturation fine-line softly painted 2D lightly realistic style. Keep coherent safe terrace perspective and mundane scale. No people, text, logos, landmarks, watermarks or luxury additions. ONE standalone portrait scene.",
+      "outputId": "exec-8896c343-36d8-4384-98da-cb20dab8c774.png",
+      "review": {
+        "reviewer": "Codex agent",
+        "humanReviewed": false,
+        "status": "agent-reviewed",
+        "observed": "已逐张查看：独立竖屏重排构图，非横图中心裁切；与横版的场所、设施、光照和风格一致，下方有文字留白。"
+      },
+      "output": {
+        "file": "art/source/terrace-mobile.a11f520b12da.png",
+        "sha256": "a11f520b12dac213dad38d7411270540305b06f52ab3d7f4533dd72ddf71c5bf",
+        "bytes": 2556041,
+        "width": 1086,
+        "height": 1448,
+        "alpha": false
+      }
+    }
+  ]
+}
