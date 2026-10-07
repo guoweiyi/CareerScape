@@ -38,6 +38,8 @@ export class JsonlParser {
   private ended = false
   private failed = false
   private outcome: 'committed' | 'failed' | 'cancelled' | undefined
+  private expectedRevision: number | undefined
+  private startedMessages = new Map<string, number>()
   private encoder = new TextEncoder()
   constructor(private readonly options: { maxLineBytes?: number; maxTotalBytes?: number; maxFrames?: number } = {}) {}
 
@@ -102,6 +104,22 @@ export class JsonlParser {
     if (this.frameIds.has(frame.frameId)) this.fail('FRAME_ID_REUSED', '帧 ID 重复使用')
     if (frame.streamSeq > (this.options.maxFrames ?? 4096)) this.fail('TOO_MANY_FRAMES', '响应帧数量超出上限')
     if (this.seq === 0 && frame.type !== 'turn_started') this.fail('MISSING_START', '响应缺少开始帧')
+    if (frame.type === 'turn_started') {
+      if (this.seq !== 0) this.fail('MULTIPLE_STARTS', '一个流只能开始一次回合')
+      this.expectedRevision = frame.payload.expectedRevision
+    }
+    if (this.outcome && ['message_start', 'message_delta', 'tool_status'].includes(frame.type)) this.fail('AFTER_OUTCOME', '业务结果之后不能追加消息或工具状态')
+    if (frame.type === 'message_start') {
+      if (this.startedMessages.has(frame.payload.messageId)) this.fail('MESSAGE_RESTARTED', '消息 ID 不能重复开始')
+      if (frame.payload.committedRevision !== this.expectedRevision! + 1) this.fail('MESSAGE_REVISION', '已保存文字的修订与本回合不一致')
+      this.startedMessages.set(frame.payload.messageId, frame.payload.committedRevision)
+    }
+    if (frame.type === 'message_delta' && this.startedMessages.get(frame.payload.messageId) !== frame.payload.committedRevision) this.fail('MESSAGE_NOT_STARTED', '文字分段没有对应的消息起始或修订不一致')
+    if (frame.type === 'turn_committed') {
+      if (frame.payload.revision !== this.expectedRevision! + 1) this.fail('COMMIT_REVISION', '业务提交修订与请求不一致')
+      const committedIds = new Set(frame.payload.messageIds)
+      if (committedIds.size !== frame.payload.messageIds.length || committedIds.size !== this.startedMessages.size || [...this.startedMessages.keys()].some(id => !committedIds.has(id))) this.fail('COMMIT_MESSAGES', '提交通知的消息列表与实际流不一致')
+    }
     if (frame.type === 'turn_committed' || frame.type === 'turn_failed' || frame.type === 'turn_cancelled') {
       if (this.outcome) this.fail('MULTIPLE_OUTCOMES', '一个流只能包含一次业务结果')
       this.outcome = frame.type === 'turn_committed' ? 'committed' : frame.type === 'turn_failed' ? 'failed' : 'cancelled'
@@ -124,14 +142,17 @@ export async function readJsonlStream(response: Response, onFrame: (frame: Frame
   const reader = response.body?.getReader()
   if (!reader) throw new ProtocolError('EMPTY_BODY', '响应缺少数据流')
   const parser = new JsonlParser()
+  const onAbort = () => { void reader.cancel().catch(() => undefined) }
+  signal?.addEventListener('abort', onAbort, { once: true })
   try {
     while (true) {
       if (signal?.aborted) throw new DOMException('读取已取消；服务端动作可能已提交', 'AbortError')
       const { done, value } = await reader.read()
+      if (signal?.aborted) throw new DOMException('读取已取消；服务端动作可能已提交', 'AbortError')
       if (done) break
       for (const frame of parser.push(value)) onFrame(frame)
     }
     for (const frame of parser.finish()) onFrame(frame)
   } catch (error) { await reader.cancel().catch(() => undefined); throw error }
-  finally { reader.releaseLock() }
+  finally { signal?.removeEventListener('abort', onAbort); reader.releaseLock() }
 }

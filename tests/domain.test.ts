@@ -39,6 +39,13 @@ describe('首包与受约束叙事', () => {
     expect(() => applyChoice(demoPack, state, 'finish_verified')).toThrow('当前可用范围')
     expect(() => applyEffects(state, [{ op: 'eval', code: '1+1' }] as never)).toThrow()
   })
+  it('提出缩小范围不等于已确认，交接后不能把协商建议写成完成', () => {
+    let state = startState(demoPack)
+    for (const id of ['arrive_begin', 'brief_expected', 'triage_scope', 'work_handoff']) state = applyChoice(demoPack, state, id).state
+    expect(state.flags.askedProduct).toBe(true)
+    expect(state.flags.scopeReduced).toBe(false)
+    expect(choicesFor(demoPack, state).map(choice => choice.id)).toEqual(['finish_handoff'])
+  })
   it('职责切换揭示另一职责材料，但不把旁白写入 NPC 知识', () => {
     const state = startState(demoPack)
     const result = applyChoice(demoPack, state, 'switch_role')

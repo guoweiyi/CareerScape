@@ -1,16 +1,30 @@
 import { z } from 'zod'
 import type { Store} from '../../../../packages/database';
 import { id, now, hash, canonical, invariant, AppError } from '../../../../packages/database'
-import { ActionInputSchema, WorldStateSchema, type NarrativeMessage, type GameInstance } from '../../../../packages/contracts'
-import { startState, nodeFor, choicesFor, applyChoice, assemble, occurrenceFor } from '../../../../packages/narrative/engine'
-import { buildRoleContext, createProvider, MockProvider, type ProviderResult, type RoleProvider } from '../../../../packages/agent'
-import { ContentService } from './content'
+import { ActionInputSchema, WorldStateSchema,ContentPackSchema, type NarrativeMessage, type GameInstance } from '../../../../packages/contracts'
+import { startState, nodeFor, choicesFor, applyChoice, assemble,assembleWithFallback, occurrenceFor } from '../../../../packages/narrative/engine'
+import {legacyPack} from '../../../../packages/content/seed-v1'
+import { buildRoleContext, createProvider, MockProvider,detectSupportedIntent,SupportedIntentSchema,type SupportedIntent, type ProviderResult, type RoleProvider } from '../../../../packages/agent'
+import { ContentService,checkAssets } from './content'
 
 type SessionRow = { id: string; owner_id: string; title: string; pack_id: string; pack_version: string; current_branch_id: string; created_at: string; updated_at: string }
 type BranchRow = { id: string; session_id: string; parent_branch_id: string | null; fork_event_seq: number; revision: number; state: string; created_at: string }
 type EventRow = { id: string; session_id: string; branch_id: string; event_seq: number; kind: string; actor: string; channel: string; recipient_id: string | null; payload: string; state_after: string; created_at: string }
 type TurnRow = { id: string; request_hash: string; lease_token: string; lease_until: number; status: string; branch_id: string }
 export type GameMessage = { id: string; eventSeq: number; speakerId: 'player' | NarrativeMessage['speakerId']; text: string; expression: NarrativeMessage['expression']; channel: 'group' | 'private' | 'explanation'; recipientId?: string; createdAt: string; sourceEventIds: string[] }
+type AssemblyFallback={fromPackVersion:number;toPackVersion:number;reason:string;requestedSeed:string}
+export function transportMessages(messages:GameMessage[],maxBytes=100_000){
+  const selected:GameMessage[]=[];let bytes=2
+  for(let index=messages.length-1;index>=0;){
+    const end=index+1,eventSeq=messages[index]!.eventSeq
+    while(index>=0&&messages[index]!.eventSeq===eventSeq)index--
+    const group=messages.slice(index+1,end),size=group.reduce((sum,message)=>sum+Buffer.byteLength(JSON.stringify(message),'utf8')+1,0)
+    invariant(selected.length>0||size+2<=maxBytes,'MESSAGE_EVENT_TOO_LARGE',409,'单次剧情消息超出传输预算，请精简该内容事件。')
+    if(bytes+size>maxBytes||selected.length+group.length>60)break
+    bytes+=size;selected.unshift(...group)
+  }
+  return selected
+}
 export type SessionDTO = ReturnType<GameService['get']>
 export class GameService {
   readonly content: ContentService
@@ -37,8 +51,24 @@ export class GameService {
     const pack = this.content.get(session.pack_id, session.pack_version), state = WorldStateSchema.parse(JSON.parse(branch.state))
     const node = nodeFor(pack, state), events = this.lineage(sessionId, branch.id)
     const instanceRow = this.store.get<{ payload: string }>('SELECT payload FROM game_instances WHERE session_id=? AND branch_id=?', sessionId, branch.id)!
-    const messages=this.messages(events)
-    return { id: session.id, title: session.title, branchId: branch.id, revision: branch.revision, eventSeq: events.at(-1)?.event_seq || 0, status: state.endingId ? 'ended' : 'active', packId: pack.id, packVersion: pack.version, assetManifestVersion: pack.assetManifestVersion, state, node, choices: choicesFor(pack, state), messages: messages.slice(-60),hasMoreHistory:messages.length>60, branches: this.store.all<BranchRow>('SELECT * FROM branches WHERE session_id=? ORDER BY created_at', sessionId).map(b => ({ id: b.id, parentBranchId: b.parent_branch_id, forkEventSeq: b.fork_event_seq, revision: b.revision, nodeId: WorldStateSchema.parse(JSON.parse(b.state)).nodeId, label: b.parent_branch_id ? `从事件 ${b.fork_event_seq} 回溯` : '原始路线' })), instance: JSON.parse(instanceRow.payload) as GameInstance, characters: pack.characters, createdAt: session.created_at, updatedAt: session.updated_at, provider: this.provider.name }
+    const messages=this.messages(events),lastEvent=events.at(-1)
+    let entered=events[0],previousNode:string|undefined
+    for(const event of events){const nodeId=(JSON.parse(event.state_after) as {nodeId:string}).nodeId;if(nodeId!==previousNode)entered=event;previousNode=nodeId}
+    const currentNodeVisit={visitId:entered?.id||branch.id,nodeId:state.nodeId,eventSeq:entered?.event_seq||0}
+    const parsedIntent=SupportedIntentSchema.safeParse(lastEvent?(JSON.parse(lastEvent.payload) as {intent?:unknown}).intent:undefined)
+    const lastIntent=parsedIntent.success?parsedIntent.data:null
+    const initialEvent=events.find(event=>event.kind==='session_started')
+    const assemblyFallback=initialEvent?(JSON.parse(initialEvent.payload) as {assemblyFallback?:AssemblyFallback}).assemblyFallback||null:null
+    const visibleMessages=transportMessages(messages)
+    const firstChoice=state.endingId?undefined:choicesFor(pack,state)[0]
+    const nextNode=firstChoice?pack.nodes.find(candidate=>candidate.nodeId===firstChoice.targetNodeId):undefined
+    const nextSpeaker=nextNode?.messages.find(message=>message.speakerId!=='narrator')
+    const prefetchAssetIds=nextNode?[`bg_${nextNode.backgroundId}_day_wide`,...(nextSpeaker?[`chr_${nextSpeaker.speakerId}_work_half_${nextSpeaker.expression}`]:[])].filter(assetId=>pack.assetRefs.includes(assetId)).slice(0,2):[]
+    const publicNode={...node,contentRef:'',conditions:[],effects:[],outgoingEdges:[],choices:[],messages:node.messages.slice(0,1),metadata:{...node.metadata,explanation:''}}
+    const publicChoices=choicesFor(pack,state).map(choice=>({...choice,targetNodeId:'',conditions:[],effects:[],messages:[]}))
+    const snapshot={ id: session.id, title: session.title, branchId: branch.id, revision: branch.revision, eventSeq: events.at(-1)?.event_seq || 0, status: state.endingId ? 'ended' : 'active', packId: pack.id, packVersion: pack.version, assetManifestVersion: pack.assetManifestVersion,prefetchAssetIds, state,currentNodeVisit, node:publicNode, choices:publicChoices, messages:visibleMessages,hasMoreHistory:messages.length>visibleMessages.length,lastIntent,assemblyFallback, branches: this.store.all<BranchRow>('SELECT * FROM branches WHERE session_id=? ORDER BY created_at', sessionId).map(b => ({ id: b.id, parentBranchId: b.parent_branch_id, forkEventSeq: b.fork_event_seq, revision: b.revision, nodeId: WorldStateSchema.parse(JSON.parse(b.state)).nodeId, label: b.parent_branch_id ? `从事件 ${b.fork_event_seq} 回溯` : '原始路线' })), instance: JSON.parse(instanceRow.payload) as GameInstance, characters:pack.characters.map(character=>({id:character.id,name:character.name,role:character.role,age:character.age,assetRefs:character.assetRefs})), createdAt: session.created_at, updatedAt: session.updated_at, provider: this.provider.name }
+    invariant(Buffer.byteLength(JSON.stringify(snapshot),'utf8')<=220_000,'SNAPSHOT_TOO_LARGE',409,'存档快照超出传输预算，请联系内容维护者检查该版本。')
+    return snapshot
   }
   list(userId: string) {
     return { sessions: this.store.all<SessionRow>('SELECT * FROM sessions WHERE owner_id=? ORDER BY updated_at DESC', userId).map(s => {
@@ -54,9 +84,21 @@ export class GameService {
   }
   create(userId: string, input: unknown) {
     const body = z.object({ packId: z.string().min(1).max(80), seed: z.string().max(80).optional() }).strict().parse(input)
-    const pack = this.content.get(body.packId)
-    const assembled = { ...assemble(pack, body.seed || id()), instanceId: id() }, state = startState(pack), sessionId = id(), branchId = id(), stamp = now()
-    this.store.transaction(() => {
+    let pack = this.content.get(body.packId)
+    const requestedSeed=body.seed||id()
+    let instance:GameInstance,assemblyFallback:AssemblyFallback|undefined
+    try{instance=assemble(pack,requestedSeed)}catch(error){
+      const safeRow=this.store.get<{manifest:string;checksum:string;status:string}>('SELECT manifest,checksum,status FROM packs WHERE id=? AND version=?',legacyPack.id,String(legacyPack.version))
+      const expectedHash=hash(canonical(legacyPack))
+      invariant(pack.occupationId===legacyPack.occupationId&&pack.version!==legacyPack.version&&safeRow?.status==='published'&&safeRow.checksum===expectedHash,'ASSEMBLY_UNAVAILABLE',409,'当前版本组局失败，尚无可用的同职业固定安全包。')
+      const safePack=ContentPackSchema.parse(JSON.parse(safeRow.manifest))
+      invariant(hash(canonical(safePack))===expectedHash&&checkAssets(safePack).ok,'ASSEMBLY_UNAVAILABLE',409,'固定安全包的版本或资源校验未通过，未创建存档。')
+      instance=assembleWithFallback(pack,requestedSeed,safePack)
+      assemblyFallback={fromPackVersion:pack.version,toPackVersion:safePack.version,reason:error instanceof Error?error.message.slice(0,300):'ASSEMBLY_GAP',requestedSeed}
+      pack=safePack
+    }
+    const assembled = { ...instance, instanceId: id() }, state = startState(pack), sessionId = id(), branchId = id(), stamp = now()
+    return this.store.transaction(() => {
       invariant(this.store.get('SELECT id FROM users WHERE id=?', userId), 'UNAUTHORIZED', 401, '请重新登录。')
       invariant(this.store.get<{n:number}>('SELECT COUNT(*) n FROM sessions WHERE owner_id=?',userId)!.n<50,'SESSION_LIMIT',409,'已保存50局，请先导出或管理已有记录。')
       this.store.run('INSERT INTO sessions VALUES (?,?,?,?,?,?,?,?)', sessionId, userId, pack.title, pack.id, String(pack.version), branchId, stamp, stamp)
@@ -64,11 +106,12 @@ export class GameService {
       this.insertInstance(sessionId, branchId, assembled)
       const occurrence = occurrenceFor(pack, assembled, state)
       const eventId = id(), messages = this.makeMessages([...nodeFor(pack, state).messages, ...(occurrence?.messages || [])], eventId, 1, stamp, 'group')
-      this.store.run('INSERT INTO event_logs VALUES (?,?,?,?,?,?,?,?,?,?,?)', eventId, sessionId, branchId, 1, 'session_started', 'system', 'group', null, JSON.stringify({ messages, revision: 0, versions: assembled }), JSON.stringify(state), stamp)
+      this.store.run('INSERT INTO event_logs VALUES (?,?,?,?,?,?,?,?,?,?,?)', eventId, sessionId, branchId, 1, 'session_started', 'system', 'group', null, JSON.stringify({ messages, revision: 0, versions: assembled,...(assemblyFallback?{assemblyFallback}:{}) }), JSON.stringify(state), stamp)
+      if(assemblyFallback)this.store.audit(userId,'session.assembly_fallback',sessionId,{fromPackVersion:assemblyFallback.fromPackVersion,toPackVersion:assemblyFallback.toPackVersion,reason:assemblyFallback.reason})
       this.store.run('INSERT INTO snapshots VALUES (?,?,?,?,?,?,?)', id(), sessionId, branchId, 1, 0, JSON.stringify(state), stamp)
       if (occurrence) this.store.run('INSERT INTO occurrences VALUES (?,?,?,?,?,?)', id(), assembled.instanceId, occurrence.id, String(occurrence.version), 'committed', 1)
+      return this.get(userId,sessionId)
     })
-    return this.get(userId, sessionId)
   }
   private insertInstance(sessionId: string, branchId: string, instance: GameInstance) {
     this.store.run('INSERT INTO game_instances VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', instance.instanceId, sessionId, branchId, String(instance.packVersion), instance.datasetVersion, instance.contentBuildId, String(instance.profileVersion), instance.assetManifestVersion, instance.seed, instance.samplerVersion, JSON.stringify(instance.castMapping), JSON.stringify(instance.projectMapping), JSON.stringify(instance.eventPool), JSON.stringify(instance))
@@ -100,6 +143,7 @@ export class GameService {
       const branch = prepared.branch!, session = prepared.session!, pack = this.content.get(session.pack_id, session.pack_version)
       let state = WorldStateSchema.parse(JSON.parse(branch.state)), messages: (NarrativeMessage | { speakerId: 'player'; text: string; expression: 'neutral' })[] = [], effects: unknown[] = [], channel: GameMessage['channel'] = input.channel
       let usage: ProviderResult | undefined
+      let intent:SupportedIntent|undefined
       const instance = JSON.parse(this.store.get<{payload:string}>('SELECT payload FROM game_instances WHERE session_id=? AND branch_id=?',sessionId,input.branchId)!.payload) as GameInstance
       let occurrence: ReturnType<typeof occurrenceFor>
       if (input.kind === 'choice' || input.kind === 'leave' || input.kind === 'switch_role') {
@@ -117,6 +161,7 @@ export class GameService {
         channel = 'explanation'
         messages = [{ speakerId: 'narrator', expression: 'neutral', text: nodeFor(pack, state).metadata.explanation }]
       } else {
+        intent=detectSupportedIntent(input.text!,choicesFor(pack,state).map(choice=>({id:choice.id,label:choice.label})))
         const speakerId = input.channel === 'private' ? input.recipientId! : 'lin'
         const visible = this.messages(this.lineage(sessionId, input.branchId))
         const context = buildRoleContext(pack, state, speakerId, visible, input.text!, choicesFor(pack, state).map(c => ({ id: c.id, label: c.label })))
@@ -139,7 +184,7 @@ export class GameService {
         const eventSeq = this.store.get<{ n: number }>('SELECT COALESCE(MAX(event_seq),0)+1 n FROM event_logs WHERE session_id=?', sessionId)!.n
         const eventId = id(), stamp = now(), revision = current.revision + 1
         const committedMessages = this.makeMessages(messages, eventId, eventSeq, stamp, channel, input.recipientId)
-        this.store.run('INSERT INTO event_logs VALUES (?,?,?,?,?,?,?,?,?,?,?)', eventId, sessionId, input.branchId, eventSeq, input.kind, userId, channel, input.recipientId || null, JSON.stringify({ messages: committedMessages, action: input, effects, revision }), JSON.stringify(state), stamp)
+        this.store.run('INSERT INTO event_logs VALUES (?,?,?,?,?,?,?,?,?,?,?)', eventId, sessionId, input.branchId, eventSeq, input.kind, userId, channel, input.recipientId || null, JSON.stringify({ messages: committedMessages, action: input, effects, revision,...(intent?{intent}:{}) }), JSON.stringify(state), stamp)
         this.store.run('UPDATE branches SET revision=?,state=? WHERE id=?', revision, JSON.stringify(state), input.branchId)
         this.store.run('UPDATE sessions SET current_branch_id=?,updated_at=? WHERE id=?', input.branchId, stamp, sessionId)
         this.store.run('INSERT INTO snapshots VALUES (?,?,?,?,?,?,?)', id(), sessionId, input.branchId, eventSeq, revision, JSON.stringify(state), stamp)

@@ -6,7 +6,7 @@ const time = (minutes: number): Effect => ({ op: 'advance_time', minutes })
 const task = (value: Extract<Effect, { op: 'set_task' }>['value']): Effect => ({ op: 'set_task', value })
 const choice = (id: string, label: string, targetNodeId: string, effects: Effect[], messages: NarrativeMessage[], description = '', conditions: Choice['conditions'] = []): Choice => ({ id, label, targetNodeId, effects, messages, description, conditions })
 const node = (nodeId: string, title: string, backgroundId: StoryNode['backgroundId'], messages: NarrativeMessage[], choices: Choice[], explanation: string, endingId?: 'verified' | 'scope' | 'handoff'): StoryNode => ({
-  packId: 'qa-last-hour', packVersion: 2, nodeId, nodeType: endingId ? 'ending' : 'savepoint', title, contentRef: `qa-last-hour/2/${nodeId}`, conditions: [], effects: [], messages, choices,
+  packId: 'qa-last-hour', packVersion: 1, nodeId, nodeType: endingId ? 'ending' : 'savepoint', title, contentRef: `qa-last-hour/1/${nodeId}`, conditions: [], effects: [], messages, choices,
   outgoingEdges: choices.map(item => ({ to: item.targetNodeId, choiceId: item.id, conditions: item.conditions })), roleVisibility: ['player', 'lin', 'zhou', 'xu'],
   assetRefs: [`bg_${backgroundId}_day_wide`], backgroundId, metadata: { checkpoint: true, explanation, ...(endingId ? { endingId } : {}) },
 })
@@ -35,7 +35,7 @@ const nodes: StoryNode[] = [
     msg('lin', '我们有三种合理安排：一起复现并验证修复；和产品谈缩小本次范围；整理证据，交给接班同事。你可以选适合自己的边界。'),
   ], [
     choice('triage_verify', '和周砚一起复现，再验证修复', 'work', [flag('bugReproduced'), time(12), task('investigating'), { op: 'reveal', characterId: 'zhou', factId: 'duplicate-observed' }], [msg('zhou', '收到步骤：弱网、剩余一个名额、连续点击两次、出现两条记录。我先检查重复请求的处理，你保留原始材料。')], '尝试验证路线；不需要编程。'),
-    choice('triage_scope', '请许知协商本次先不开放报名', 'work', [flag('askedProduct'), time(10), task('investigating'), { op: 'reveal', characterId: 'xu', factId: 'duplicate-observed' }], [msg('xu', '可以讨论把报名入口暂时关闭，让活动介绍页先发布。我会明确这需要产品确认，并通知受影响的人。', 'thinking')], '范围协商路线；缩小范围也需要验证。'),
+    choice('triage_scope', '请许知协商本次先不开放报名', 'work', [flag('scopeReduced'), time(10), task('investigating'), { op: 'reveal', characterId: 'xu', factId: 'duplicate-observed' }], [msg('xu', '可以讨论把报名入口暂时关闭，让活动介绍页先发布。我会明确这需要产品确认，并通知受影响的人。', 'thinking')], '范围协商路线；缩小范围也需要验证。'),
     choice('triage_handoff', '今天先不继续排查，整理交接', 'work', [flag('handoffReady'), time(7), task('deferred')], [msg('lin', '可以。把已知、未知和下一步分开写，团队接住后续工作。你不需要为了证明投入而延长工作时间。')], '交接路线；不扣分，也不判断职业适配。'),
     choice('triage_help', '我分不清这些信息，想有人一起看', 'work', [flag('helpAsked'), flag('bugReproduced'), time(12), task('investigating')], [msg('lin', '我陪你把观察整理成四行：环境、步骤、预期、实际。然后请周砚一起复现。', 'relaxed')]),
   ], '缺陷严重程度、发布优先级和个人能力是不同的事。这里没有能力分数。你看到的是合成材料，不是行业统一的优先级判定。'),
@@ -96,14 +96,14 @@ function deepFreeze<T>(value: T): T {
   return value
 }
 
-export const demoPack: ContentPack = deepFreeze(ContentPackSchema.parse({
-  id: 'qa-last-hour', version: 2, title: '上线前的最后一小时', subtitle: '软件测试新人 · 原创合成演示', occupationId: 'qa-junior', organization: '栖木工作室', origin: 'synthetic', contentStatus: 'published', domainReviewStatus: 'pending', releasePolicy: 'demo',
-  datasetVersion: 'qa-demo-2026-10-08', contentBuildId: 'qa-last-hour-v2', profileVersion: 1, assetManifestVersion: 'careerscape-art-v2', schemaVersion: 1, samplerVersion: 'constrained-v1', promptVersion: 'npc-bounded-v1',
+export const legacyPack: ContentPack = deepFreeze(ContentPackSchema.parse({
+  id: 'qa-last-hour', version: 1, title: '上线前的最后一小时', subtitle: '软件测试新人 · 原创合成演示', occupationId: 'qa-junior', organization: '栖木工作室', origin: 'synthetic', contentStatus: 'published', domainReviewStatus: 'pending', releasePolicy: 'demo',
+  datasetVersion: 'qa-demo-2026-10-08', contentBuildId: 'qa-last-hour-v1', profileVersion: 1, assetManifestVersion: 'careerscape-art-v1', schemaVersion: 1, samplerVersion: 'constrained-v1', promptVersion: 'npc-bounded-v1',
   profile: { id: 'qa-junior', title: '软件测试新人', scope: '虚构小型产品团队中的功能验收协作', level: '入门协作', responsibilities: ['对照材料观察预期与实际', '记录复现步骤和测试条件', '说明验证边界并交接'], authority: ['可记录与提问', '可求助、拒绝额外工作和下班', '不可自行批准发布或改写需求'], collaborators: ['资深 QA 林澄', '开发 周砚', '产品 许知'], prerequisites: ['无需编程基础', '材料卡提供所需情境信息'], workingHours: '故事 17:00 开始，团队约定 18:00 下班；不鼓励超时', unknownFacts: ['不代表真实公司的岗位职责、薪资或作息', '未进行行业专家核验', '不涉及真实系统和真实用户数据'] },
   characters: [
-    { id: 'lin', name: '林澄', role: '资深 QA', roleSlot: 'mentor', age: 30, personality: '说话简洁，喜欢先确认事实；会给新人留出提问空间，也会坦承自己需要复核。', goal: '让测试结论可复查，让团队明确承接未完事项。', permissions: ['复核测试结论', '组织结对检查', '安排交接'], initialKnowledge: ['team-boundary', 'acceptance-criteria'], appearance: '成年女性，低马尾，奶油色衬衣，绿色马甲；平静、轻松、思考、严肃四种表情固定服装与身份。', assetRefs: ['chr_lin_work_half_neutral', 'chr_lin_work_half_relaxed', 'chr_lin_work_half_thinking', 'chr_lin_work_half_serious', 'avatar_lin_neutral'], sourceFactIds: [], origin: 'synthetic' },
-    { id: 'zhou', name: '周砚', role: '产品开发', roleSlot: 'developer', age: 28, personality: '爱把猜测和证据分开；忙的时候句子短，拿到清晰信息后会主动配合。', goal: '确认重复报名的触发条件，给出可验证的修复候选。', permissions: ['修改测试环境中的候选代码', '说明技术状态'], initialKnowledge: ['team-boundary', 'build-candidate'], appearance: '成年男性，短黑发，深蓝工装衬衣；不以严肃表情暗示敌意。', assetRefs: ['chr_zhou_work_half_neutral', 'chr_zhou_work_half_relaxed', 'chr_zhou_work_half_thinking', 'chr_zhou_work_half_serious', 'avatar_zhou_neutral'], sourceFactIds: [], origin: 'synthetic' },
-    { id: 'xu', name: '许知', role: '产品负责人', roleSlot: 'product', age: 29, personality: '在意承诺是否被理解；愿意协商范围，需要具体影响来作决定。', goal: '把对外承诺与已验证的范围对齐，而不是催所有人无限加班。', permissions: ['确认本次交付范围', '负责发布决定和对外说明'], initialKnowledge: ['team-boundary', 'acceptance-criteria', 'duplicate-impact', 'product-note'], appearance: '成年女性，齐肩深棕发，赤陶色开衫；服装和脸部身份在表情间保持固定。', assetRefs: ['chr_xu_work_half_neutral', 'chr_xu_work_half_relaxed', 'chr_xu_work_half_thinking', 'chr_xu_work_half_serious', 'avatar_xu_neutral'], sourceFactIds: [], origin: 'synthetic' },
+    { id: 'lin', name: '林澄', role: '资深 QA', roleSlot: 'mentor', age: 29, personality: '说话简洁，喜欢先确认事实；会给新人留出提问空间，也会坦承自己需要复核。', goal: '让测试结论可复查，让团队明确承接未完事项。', permissions: ['复核测试结论', '组织结对检查', '安排交接'], initialKnowledge: ['team-boundary', 'acceptance-criteria'], appearance: '成年女性，低马尾，奶油色衬衣，绿色马甲；平静、轻松、思考、严肃四种表情固定服装与身份。', assetRefs: ['chr_lin_work_half_neutral', 'chr_lin_work_half_relaxed', 'chr_lin_work_half_thinking', 'chr_lin_work_half_serious', 'avatar_lin_neutral'], sourceFactIds: [], origin: 'synthetic' },
+    { id: 'zhou', name: '周砚', role: '产品开发', roleSlot: 'developer', age: 27, personality: '爱把猜测和证据分开；忙的时候句子短，拿到清晰信息后会主动配合。', goal: '确认重复报名的触发条件，给出可验证的修复候选。', permissions: ['修改测试环境中的候选代码', '说明技术状态'], initialKnowledge: ['team-boundary', 'build-candidate'], appearance: '成年男性，短黑发，深蓝工装衬衣；不以严肃表情暗示敌意。', assetRefs: ['chr_zhou_work_half_neutral', 'chr_zhou_work_half_relaxed', 'chr_zhou_work_half_thinking', 'chr_zhou_work_half_serious', 'avatar_zhou_neutral'], sourceFactIds: [], origin: 'synthetic' },
+    { id: 'xu', name: '许知', role: '产品负责人', roleSlot: 'product', age: 28, personality: '在意承诺是否被理解；愿意协商范围，需要具体影响来作决定。', goal: '把对外承诺与已验证的范围对齐，而不是催所有人无限加班。', permissions: ['确认本次交付范围', '负责发布决定和对外说明'], initialKnowledge: ['team-boundary', 'acceptance-criteria', 'duplicate-impact', 'product-note'], appearance: '成年女性，齐肩深棕发，赤陶色开衫；服装和脸部身份在表情间保持固定。', assetRefs: ['chr_xu_work_half_neutral', 'chr_xu_work_half_relaxed', 'chr_xu_work_half_thinking', 'chr_xu_work_half_serious', 'avatar_xu_neutral'], sourceFactIds: [], origin: 'synthetic' },
   ],
   project: { id: 'campus-registration', title: '校园活动报名工具的小版本发布', deliverables: ['一份有范围的验证清单，或范围变更记录，或未完成事项交接单'], resources: ['脱敏合成测试账号', '正常与弱网模拟材料', '复现记录卡'], deadline: '今天 18:00 前确认交付或交接安排', approver: 'xu', exitPath: '任何阶段可以整理当前已知后下班；团队接手剩余事项' },
   sources: [{ id: 'source-synthetic-design', url: null, title: 'CareerScape 原创合成情境设计', observedAt: '2026-10-08T00:00:00.000Z', publishedAt: null, scope: '只支持本包虚构组织、任务与人物设定；不作为行业统计来源', rights: { read: true, store: true, embed: false, train: false, redistribute: true }, origin: 'synthetic', reviewStatus: 'agent_checked' }],
@@ -119,5 +119,4 @@ export const demoPack: ContentPack = deepFreeze(ContentPackSchema.parse({
   assetRefs: ['lin', 'zhou', 'xu'].flatMap(id => [...['neutral', 'relaxed', 'thinking', 'serious'].map(expression => `chr_${id}_work_half_${expression}`), `avatar_${id}_neutral`]).concat(['bg_office_day_wide', 'bg_meeting_day_wide', 'bg_testing_day_wide', 'bg_terrace_day_wide']),
   review: { reviewerType: 'agent', scope: ['字段与引用校验', '三条路径与退出路径测试', '角色职责和权限一致性', '虚构来源边界说明'], limitations: ['没有行业人工审核', '仅三名主角色，人物组合固定', 'AI 对话质量需真实 provider 回归', '美术文件与许可由独立资源发布门禁验证'], reviewedAt: '2026-10-08T00:00:00.000Z' },
 }))
-
 

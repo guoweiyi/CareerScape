@@ -7,6 +7,11 @@ import { ContentService } from '../apps/web/server/services/content'
 const command = process.argv[2] || 'migrate'
 const sourcePath = resolve(process.env.DATABASE_PATH || '.data/careerscape.sqlite')
 const store = new Store(sourcePath)
+function foreignKeyErrorCount(database:Store){
+  const result:unknown=database.sql.pragma('foreign_key_check')
+  if(!Array.isArray(result))throw new Error('SQLite外键检查返回了未知格式。')
+  return result.length
+}
 try {
   if (command === 'migrate') console.log(JSON.stringify({ status: 'migrated', schemaVersion: '0001', integrity: store.sql.pragma('integrity_check', { simple: true }) }))
   else if (command === 'seed') console.log(JSON.stringify(new ContentService(store).seed(), null, 2))
@@ -24,7 +29,7 @@ try {
     await store.sql.backup(destination)
     const check = new Store(destination)
     try {
-      if (check.sql.pragma('integrity_check',{simple:true}) !== 'ok' || check.sql.pragma('foreign_key_check').length) throw new Error('备份完整性检查失败')
+      if (check.sql.pragma('integrity_check',{simple:true}) !== 'ok' || foreignKeyErrorCount(check)) throw new Error('备份完整性检查失败')
       const manifest={schemaVersion:'0001',createdAt:now(),sha256:createHash('sha256').update(readFileSync(destination)).digest('hex'),tableCounts:Object.fromEntries(['users','sessions','branches','event_logs','snapshots'].map(table=>[table,check.get<{n:number}>(`SELECT COUNT(*) n FROM ${table}`)!.n])),retentionDays:30,containsPersonalData:true}
       writeFileSync(`${destination}.manifest.json`,JSON.stringify(manifest,null,2))
       console.log(JSON.stringify({status:'backup_verified',destination,...manifest}))
@@ -44,7 +49,7 @@ try {
       const deletions=new Set(store.all<{user_hash:string}>('SELECT user_hash FROM account_deletions').map(d=>d.user_hash))
       let reapplied=0
       restored.transaction(()=>{for(const user of restored.all<{id:string}>('SELECT id FROM users'))if(deletions.has(hash(user.id))){restored.run('DELETE FROM users WHERE id=?',user.id);restored.run('INSERT OR IGNORE INTO account_deletions VALUES (?,?)',hash(user.id),now());reapplied++}})
-      if(restored.sql.pragma('integrity_check',{simple:true})!=='ok'||restored.sql.pragma('foreign_key_check').length)throw new Error('恢复后完整性检查失败。')
+      if(restored.sql.pragma('integrity_check',{simple:true})!=='ok'||foreignKeyErrorCount(restored))throw new Error('恢复后完整性检查失败。')
       console.log(JSON.stringify({status:'restore_verified',destination,reappliedDeletions:reapplied,liveDatabaseReplaced:false,events:restored.get<{n:number}>('SELECT COUNT(*) n FROM event_logs')!.n}))
     }finally{restored.close()}
   } else throw new Error(`未知命令:${command}`)

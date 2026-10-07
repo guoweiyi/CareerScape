@@ -4,6 +4,7 @@ import { AuthService } from '../apps/web/server/services/auth'
 import { ContentService, checkAssets } from '../apps/web/server/services/content'
 import { GameService } from '../apps/web/server/services/game'
 import { demoPack } from '../packages/content/seed'
+import {legacyPack} from '../packages/content/seed-v1'
 import { buildRoleContext, type RoleProvider, type ProviderResult } from '../packages/agent'
 import { startState } from '../packages/narrative/engine'
 import { mkdtempSync, rmSync } from 'node:fs'
@@ -17,7 +18,7 @@ function setup() {
   const content = new ContentService(store)
   // Explicit test fixture publication, independent of generation-tool output on CI.
   content.seed()
-  store.run("UPDATE packs SET status='published',active=1")
+  store.run("UPDATE packs SET status='published',active=1 WHERE version=?",String(demoPack.version))
   const auth = new AuthService(store), guest = auth.guest(), who = auth.lookup('raw' in guest ? guest.raw : undefined)!
   const game = new GameService(store), session = game.create(who.user.id, { packId: demoPack.id, seed: 'test-seed' })
   return { store, content, auth, who, game, session }
@@ -165,7 +166,11 @@ describe('Account and content controls', () => {
     expect(()=>content.mutate(who,{action:'approve',packId:demoPack.id,version:demoPack.version+1})).toThrow()
     who.user.roles=['reviewer'];content.mutate(who,{action:'approve',packId:demoPack.id,version:demoPack.version+1})
     expect(store.get<{status:string}>('SELECT status FROM packs WHERE version=?',String(demoPack.version+1))!.status).toBe('approved')
-    expect(content.overview(who)).not.toHaveProperty('messages')
+    const overview=content.overview(who)
+    expect(overview).not.toHaveProperty('messages')
+    expect(overview.audit[0]).toHaveProperty('resourceId');expect(overview.audit[0]).toHaveProperty('createdAt');expect(overview.audit[0]).not.toHaveProperty('resource_id')
+    expect(overview.packs.every(pack=>pack.domainReviewStatus==='pending')).toBe(true)
+    expect(store.get<{reviewer_type:string}>('SELECT reviewer_type FROM reviews ORDER BY rowid DESC LIMIT 1')!.reviewer_type).toBe('agent')
   })
   it('denies missing art and protects publication state regardless of manifest claims', () => {
     const {content,store}=setup()
@@ -174,12 +179,21 @@ describe('Account and content controls', () => {
     expect(()=>content.get(demoPack.id)).toThrow()
     expect(content.get(demoPack.id,demoPack.version).contentStatus).toBe('draft')
   })
+  it('retains the immutable old package and preserves an explicit rollback after seed restarts',()=>{
+    const {content,game,who,session}=setup()
+    expect(content.get(legacyPack.id,legacyPack.version).assetManifestVersion).toBe('careerscape-art-v1')
+    who.user.roles=['admin'];content.mutate(who,{action:'rollback',packId:legacyPack.id,version:legacyPack.version,reason:'回归验证旧局和明确回退保持'})
+    content.seed()
+    expect(content.get(demoPack.id).version).toBe(legacyPack.version)
+    expect(game.get(who.user.id,session.id).packVersion).toBe(demoPack.version)
+    expect(game.get(who.user.id,session.id).assetManifestVersion).toBe(demoPack.assetManifestVersion)
+  })
   it('backs up a real WAL database and restores verified committed records', async () => {
     const directory=mkdtempSync(join(tmpdir(),'careerscape-backup-'))
     let original:Store|undefined,restored:Store|undefined
     try {
       original=new Store(join(directory,'source.sqlite'))
-      new ContentService(original).seed();original.run("UPDATE packs SET status='published',active=1")
+      new ContentService(original).seed();original.run("UPDATE packs SET status='published',active=1 WHERE version=?",String(demoPack.version))
       const guest=new AuthService(original).guest(),game=new GameService(original)
       const session=game.create(guest.user.id,{packId:demoPack.id,seed:'backup-seed'})
       const committed=await game.act(guest.user.id,session.id,action(session))

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FrameSchema, JsonlParser, frameFactory, type Frame } from '../packages/contracts'
+import { FrameSchema, JsonlParser, frameFactory, readJsonlStream, type Frame } from '../packages/contracts'
 
 function conversation(): Frame[] {
   const frame = frameFactory({ streamId: 'stream1', turnId: 'turn1', sessionId: 'session1', branchId: 'branch1' }, () => '2026-10-08T00:00:00.000Z')
@@ -48,5 +48,37 @@ describe('严格 JSONL 增量协议', () => {
     if (frame?.type !== 'message_delta') throw new Error('test fixture')
     expect(FrameSchema.safeParse({ ...frame, payload: { ...frame.payload, stateDelta: { isAdmin: true } } }).success).toBe(false)
     expect(FrameSchema.safeParse({ ...frame, payload: { ...frame.payload, provisional: true } }).success).toBe(false)
+  })
+  it('拒绝第二次开始、缺少message_start或重复消息ID', () => {
+    const run = (frames: Frame[]) => { const parser = new JsonlParser(); parser.push(bytes(frames)); parser.finish() }
+    const f = frameFactory({ streamId: 's', turnId: 't', sessionId: 'ss', branchId: 'b' })
+    expect(() => run([f('turn_started', { expectedRevision: 0 }), f('turn_started', { expectedRevision: 0 })])).toThrow('只能开始一次')
+    const g = frameFactory({ streamId: 's', turnId: 't', sessionId: 'ss', branchId: 'b' })
+    expect(() => run([g('turn_started', { expectedRevision: 0 }), g('message_delta', { messageId: 'm', text: '先发文字', provisional: false, committedRevision: 1 })])).toThrow('没有对应的消息起始')
+    const h = frameFactory({ streamId: 's', turnId: 't', sessionId: 'ss', branchId: 'b' })
+    const start = { messageId: 'm', speakerId: 'lin' as const, provisional: false as const, committedRevision: 1 }
+    expect(() => run([h('turn_started', { expectedRevision: 0 }), h('message_start', start), h('message_start', start)])).toThrow('重复开始')
+  })
+  it('提交必须匹配本回合修订与实际消息，结果后不能继续发文字', () => {
+    const run = (frames: Frame[]) => { const parser = new JsonlParser(); parser.push(bytes(frames)); parser.finish() }
+    const wrongRevision = conversation(); const commit = wrongRevision[4]
+    if (commit?.type !== 'turn_committed') throw new Error('fixture')
+    commit.payload.revision = 9
+    expect(() => run(wrongRevision)).toThrow('提交修订')
+    const wrongMessages = conversation(); const other = wrongMessages[4]
+    if (other?.type !== 'turn_committed') throw new Error('fixture')
+    other.payload.messageIds = ['unknown']
+    expect(() => run(wrongMessages)).toThrow('消息列表')
+    const after = conversation(); after[5] = { ...after[3]!, streamSeq: 6, frameId: 'after' }
+    expect(() => run(after)).toThrow('业务结果之后')
+  })
+  it('等待无数据时取消也会终止reader，不必等下一帧', async () => {
+    let cancelled = false
+    const controller = new AbortController()
+    const response = new Response(new ReadableStream<Uint8Array>({ cancel() { cancelled = true } }), { headers: { 'content-type': 'application/x-ndjson' } })
+    const reading = readJsonlStream(response, () => undefined, controller.signal)
+    controller.abort()
+    await expect(reading).rejects.toMatchObject({ name: 'AbortError' })
+    expect(cancelled).toBe(true)
   })
 })

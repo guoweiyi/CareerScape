@@ -2,6 +2,7 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { generateText, streamText, stepCountIs, tool } from 'ai'
 import { z } from 'zod'
 import type { Character, CharacterId, ContentPack, WorldState } from '../contracts'
+export {detectSupportedIntent,SupportedIntentSchema,type SupportedIntent} from './intent'
 
 export type VisibleMessage = { id: string; eventSeq: number; speakerId: string; channel: string; recipientId?: string; text: string; sourceEventIds: string[] }
 export type RoleContext = { character: Character; facts: { id: string; text: string; sourceEventIds:string[];sourceKind:'initial-setting'|'event' }[]; history: VisibleMessage[]; availableActions: { id: string; label: string }[]; currentInput: string; packVersion: number; promptVersion: string }

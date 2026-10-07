@@ -46,7 +46,7 @@ seed 是公开原创合成 fixture，未读取真实个人资料。美术不齐�
 
 默认 `AI_PROVIDER=mock`；回复明显标注【模拟对话】，用量为零，不发网络模型请求。真实 provider 需要操作者显式设置 `AI_PROVIDER=openai`、`OPENAI_API_KEY`，可设置 OPENAI_MODEL。key 仅在服务端环境中，后台只展示 provider/model/prompt 版本名。
 
-SDK7 的 `generateText`、`streamText`、`tool` 和 `stepCountIs` 已使用安装包类型编译。在线接口使用 generateText 完成候选后再事务提交；独立 streamRoleText 提供只读流式表达适配，P0玩家未启用未提交预览。白名单工具仅 readKnownFact，逐次核对角色可知事实 ID，无任意网络/文件/SQL能力、无业务副作用，最多两步，500 output tokens，25秒超时，SDK重试0。工具不负责推进剧情。
+SDK7 的 `generateText`、`streamText`、`tool` 和 `stepCountIs` 已使用安装包类型编译。在线接口使用 generateText 完成候选后再事务提交；独立 streamRoleText 提供只读流式表达适配，P0玩家未启用未提交预览。白名单工具仅 readKnownFact，逐次核对角色可知事实 ID，无任意网络/文件/SQL能力、无业务副作用，最多两步及两次工具执行，24,000字符上下文上限，500 output tokens，25秒超时，SDK重试0。工具不负责推进剧情。
 
 每次角色调用只提供自己的设定、已知事实及 sourceEventIds、实际收到的群聊/本人私聊、当前允许行动与玩家输入。旁白解释、手账、其他NPC私聊、其他分支和未来节点不进入上下文。角色工具只读；规则裁定才能更新状态。自由输入默认是对话，不把“帮我提交”误当成已执行。
 
@@ -56,7 +56,7 @@ SDK7 的 `generateText`、`streamText`、`tool` 和 `stepCountIs` 已使用安�
 
 反代启用 HTTPS；设置准确 APP_ORIGIN，production Cookie 强制 Secure。唯一的本地生产预览例外是明确设置 `COOKIE_SECURE=false` 且请求 hostname 为 `localhost`、`127.0.0.1` 或 `::1`；其他 production hostname 忽略该降级开关，始终 Secure。开发 NODE_ENV 不强制 Secure。`/api/**` 禁共享缓存；JSONL 关闭代理缓冲，超时至少 60秒。反代 body 上限 512KB、连接/请求限流并按本站 origin 使用。API 另做 schema、长度、CSRF 和所有权校验。内容管理路径在生产网络层限制到受控 VPN/管理员网络；P1再接入MFA，不能把当前密码登录称为已实现MFA。
 
-Nitro `.output` 可独立发布，但必须同时携带 `server/` 和完整 `public/`，不能只拷贝 server。在 `.output` 目录启动 `node server/index.mjs`，设置绝对 `DATABASE_PATH=/持久卷/careerscape.sqlite`，建议设置绝对 `ASSET_PUBLIC_DIR=/部署目录/public`。不设置时资源门禁按仓库 apps/web/public、当前 public、上级 public 顺序查找。嵌入的迁移与seed已被服务端bundle包含，不依赖部署时存在 TypeScript 源文件。seed只有第一次建包或尚无活动版本且初版待资源时才能初始化新局入口；已有发布/回退入口不会被进程重启改回初版。
+Nitro `.output` 可独立发布，但必须同时携带 `server/` 和完整 `public/`，不能只拷贝 server。在 `.output` 目录启动 `node server/index.mjs`，设置绝对 `DATABASE_PATH=/持久卷/careerscape.sqlite`，建议设置绝对 `ASSET_PUBLIC_DIR=/部署目录/public`。不设置时资源门禁按仓库 apps/web/public、当前 public、上级 public 顺序查找。资源优先按 `manifest-<assetManifestVersion>.json` 冻结清单验证，连同retina与mobile全部校验，v2必须有4个独立竖构图。嵌入的迁移与seed已被服务端bundle包含，不依赖部署时存在 TypeScript 源文件。空库初始化v2并保留v1历史版本；已有发布/回退入口不会被进程重启改回初版，新引入的v2在已有活动版本的库中保持approved，需要明确的后台发布。seed不覆盖已发布正文。
 
 远程 libSQL/Turso 是有条件的备选：需先核验官方驱动事务、迁移、延迟、地区和备份行为，再实现同等 repository 并重跑并发/归属/恢复测试；当前没有仅换 URL 的等价承诺，也未部署远程库。多写扩容需要单独 ADR，不通过共享 SQLite 网络磁盘解决。
 
