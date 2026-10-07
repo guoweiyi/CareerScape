@@ -45,3 +45,5 @@ v2共有19逻辑资产：12透明半身、3同源头像、4背景。背景有分
 真实模型自然度、隐私提示稳健性、账单/费用和网络延迟；行业专业人员审核；自愿学生价值研究；微信WebView、iOS/Safari与Android真机软键盘、读屏软件；真实HTTPS反代/生产备份介质/机房灾备。这些项目没有被模拟测试替代。首包是原创合成演示，行业审核保持pending；无音频可完整游玩。
 
 提交、push和远端CI状态单独记录在 `delivery-log.md`。本地通过不自动等于远端CI通过。
+
+最终远端确认：[GitHub Actions 37665752230](https://github.com/guoweiyi/CareerScape/actions/runs/37665752230) 对代码与测试提交 `a24090ea98709ea7a40789aedf34dc86e6474e70` 已完成且全部成功。Ubuntu跑通相同门禁；最后的文档补记没有更改执行代码。
