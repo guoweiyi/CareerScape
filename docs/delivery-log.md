@@ -4,12 +4,26 @@
 
 | featureId | 验收范围 | 实现/验证 | 提交与远端 |
 |---|---|---|---|
-| F01-foundation | Nuxt 4、严格TS、锁版本、质量门禁 | 安装/peer检查通过；完整工作区build通过，运行时SSR故障正在修复 | 9ac7c3b；已push并ls-remote核实 |
+| F01-foundation | Nuxt 4、严格TS、锁版本、质量门禁 | 安装/peer通过；最终build/SSR已通过，Windows修正在F04 | 9ac7c3b；已push并ls-remote核实 |
 | F02-content | 1职业、3人物、1项目、14模板、8节点、DSL、组局、3路线、JSONL | 25测试通过；CLI隔离SQLite生成校验14/14，mock估算764tokens/费用0；资源门禁拒绝未就绪包 | f567e21；已push并ls-remote核实（后续因果修正将进入新版本） |
-| F03-service | 数据库、Argon2id身份、事务/租约/幂等、恢复、分支、AI适配 | 18真实DB测试、lint通过；迁移/seed/备份恢复CLI实跑；固定版本资源校验通过 | 本次功能提交，随后记录SHA |
-| F04-player | 可体验H5、聊天、手账、账号和存档 | 进行中 | 待验证后提交 |
-| F05-art | 12立绘、头像、4背景、实际接入 | 进行中 | 待生成与视觉检查 |
-| F06-admin | 校验审核发布回退、RBAC与审计 | 进行中 | 待验证后提交 |
-| F07-acceptance | 浏览器、回归、部署准备及追踪文档 | 进行中 | 待验证后提交 |
+| F03-service | 数据库、Argon2id身份、事务/租约/幂等、恢复、分支、AI适配 | 提交时18真实DB测试；迁移/seed/备份恢复CLI实跑 | fe2f477；已push并ls-remote核实 |
+| F03b-recovery | 严格归档导入、版本v2/历史v1、流容量、开局安全包回退、明确意图确认 | 提交时63项总回归通过；长中文、重签归档篡改、组局失败与冻结资产测试 | 9256978；已push并ls-remote核实 |
+| F04-player | H5、聊天、手账、账号、存档、离线恢复、低流量与预取 | 最终5项浏览器测试全部通过，手账保存后刷新原文保持；手机/桌面实拍 | ef76a5d；已push并ls-remote核实 |
+| F05-art | 12立绘、3头像、4独立横/竖背景、品牌、界面组件 | v1/v2哈希/透明/许可门禁通过；38WebP合计4.49MB，21母版本地保留 | 14241e0；已push并ls-remote核实 |
+| F06-admin | 审核发布回退、RBAC、审计、批次预算/续跑、seed预览、自愿反馈 | 真实浏览器完整发布与回退；反馈明确同意且不附私密内容；总69项单元/服务测试通过 | ba0d37d；已push并ls-remote核实 |
+| F07-acceptance | 浏览器、回归、部署准备、截图、25主题追踪与CI | 本地门禁通过；见下表。CI随本次提交启用，推送后核实远端结果 | 本文所在验收提交，SHA在后续CI结果补记 |
 
-记录真实执行结果；本地commit和远端push分别确认，未验证项不视作通过。当前没有旧README/锁文件/设计/CI可读取或迁移。
+## 最终本地门禁
+
+| 命令 | 实际结果 |
+|---|---|
+| `pnpm peers check` | 无问题 |
+| `pnpm typecheck` / `pnpm exec tsc --noEmit` | 均通过 |
+| `pnpm lint` | 通过 |
+| `pnpm test` | 11个文件，69项通过 |
+| `node scripts/art/verify.mjs v1` / `v2` | 均通过，读取真实文件核对hash/尺寸/alpha/预算/制作及许可记录 |
+| `pnpm build` | 最新手账修复后25.9秒成功，含少量上游依赖警告 |
+| `pnpm test:e2e` | 最新5项通过，11.7秒，独立SQLite生产服务 |
+| `node scripts/capture.mjs` | 两套关键界面实拍，无pageerror、无横向溢出，最终手账原文实际查看 |
+
+远端仓库开始为空，以上每个功能提交均逐次push，未强推或合并。最终本地生产预览在loopback端口3000；不是公网部署。真实模型、行业人工审核、真机软键盘/微信与生产代理仍为条件验证，详见`verification.md`。

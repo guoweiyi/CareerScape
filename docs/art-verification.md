@@ -41,6 +41,8 @@
 
 ## 发布及后续编辑
 
+最终集成复验（根执行者）：已修正首页便签与人物头部位置，实际查看390×844和1440×900的首页、剧情、聊天、手账、存读档与反馈截图。`home-390.png` / `home-1440.png` / `play-390.png` / `play-1440.png` 为指定视口截图，`*-full.png`另存滚动全页。手机竖构图实际加载，文字未遮眼、头部完整。浏览器5项验收含360px、200%文字、844×390横屏文字模式、断图、离线、减少动态；真机软键盘与读屏软件仍未验证，详见`verification.md`。
+
 - 固定清单：`/art/manifest-careerscape-art-v1.json`、`/art/manifest-careerscape-art-v2.json`。当前指针：`/art/manifest.json`。新会话冻结v2；历史v1会话仍使用原图。
 - 单张asset审查状态为 `agent-reviewed`；manifest发布状态为 `published`，二者含义独立。
 - 许可与署名：`ASSET_LICENSES.md`，范围是本次CareerScape工程运行与授权仓库提交；没有擅自将AI素材标为CC0或套用代码许可。

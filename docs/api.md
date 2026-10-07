@@ -35,6 +35,7 @@
 | POST `/api/sessions/:id/journal` | `{text,branchId?}`；最多 10,000 字符；仅本人 |
 | GET `/api/sessions/:id/history?branchId=&beforeEventSeq=` | 向前 12 个事件的 `{messages,hasMore,nextBeforeEventSeq}` |
 | GET `/api/health` | 数据库只读存活查询；不泄漏路径、版本密钥或个人数据 |
+| POST `/api/feedback` | `{consent:true,kind:'experience'或'content_issue'或'technical_issue'或'suggestion',text,sessionId?}`；1—2000字，选填旅程必须本人；返回id/createdAt，仅保存主动填写的反馈 |
 
 ```ts
 type ActionInput = {
@@ -62,6 +63,10 @@ JSONL 完整顺序为 `turn_started → tool_status → heartbeat（需要时）
 相同 `(sessionId,clientActionId)` 相同正文返回原回执，包含原始实际文本。异正文拒绝 `ACTION_BODY_CONFLICT`；revision 过期拒绝 `REVISION_CONFLICT`；正在生成返回 `TURN_RUNNING`，客户端查询 turn 后使用原 ID 重试。45 秒租约超过生成 25 秒超时，旧工作者在提交前再次校验租约与 revision。过期任务可重领，同一分支同时只准一个有效生成租约。流内失败为 `turn_failed + stream_end`，不是 HTTP 200 就等于保存成功。
 
 ## 后台接口
+
+GET `/api/admin/feedback` 需要 editor/reviewer/admin，返回最近100条中明确同意的反馈 `{items:[{kind,text,createdAt}],limit:100}`，不返回账号标识、聊天、手账或旅程全文。反馈随账号删除，游客认领与本人导出使用既有归属机制。
+
+SessionDTO 的 `prefetchAssetIds` 只包含当前第一个合法选择目标场景的最多两个已登记资源ID，不包含未来文本。客户端还有每轮400KB/每会话2MB上限，低流量/纯文字/saveData时禁用。
 
 GET `/api/admin` 需要 editor/reviewer/admin 任一内容角色，返回内容版本、资源门禁、模型路由标识、必要统计和脱敏审计，不提供玩家私聊、手账或研究记录。审计项为 `{action,resourceId,metadata,createdAt}`，统一camelCase且metadata为已解析对象；原创合成包行业审核仍为pending，自动审核记录reviewerType=agent。
 

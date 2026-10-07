@@ -1,5 +1,7 @@
 # VERSION-MATRIX
 
+运行时修复：Nuxt 4.6 / Nitro 2.13 的 Windows路径外置renderer导致SSR报错（构建本身成功），已在`nitro.externals.inline`加入跨平台路径正则并以生产浏览器验证。参考[Nuxt上游问题36467](https://github.com/nuxt/nuxt/issues/36467)。Pinia调用显式绑定当前Nuxt实例的`usePinia()`。构建仍有上游exports路径与pure-comment警告，退出码为0；没有隐藏为“零警告”。
+
 核对日期：2026-10-08（Asia/Shanghai）。以下为实际安装版本；`pnpm-lock.yaml` 是依赖解析依据，未使用“Nuxt 3/4 均可”的悬置选择。
 
 | 项目 | 锁定/实际版本 | 核对依据 |
