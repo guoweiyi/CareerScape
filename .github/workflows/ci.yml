@@ -1,21 +1,33 @@
-name: P0 checks
+name: CI and Docker
 on:
   push:
-    paths-ignore: ['docs/**', 'README.md']
+    branches: ['**']
+    tags: ['v*']
+    paths-ignore: ['docs/**', 'README.md', 'CONTRIBUTING.md', '.github/PULL_REQUEST_TEMPLATE.md']
   pull_request:
-    paths-ignore: ['docs/**', 'README.md']
+    paths-ignore: ['docs/**', 'README.md', 'CONTRIBUTING.md', '.github/PULL_REQUEST_TEMPLATE.md']
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the tested image (default branch or v* tag only)
+        type: boolean
+        default: false
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 jobs:
   check:
+    name: Typecheck, tests and browser acceptance
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 24.16.0
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         with:
           version: 12.6.0
       - run: pnpm install --frozen-lockfile
@@ -29,11 +41,132 @@ jobs:
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: browser-evidence
+          retention-days: 7
           path: |
             test-results/
             playwright-report/
             docs/screenshots/
+
+  docker:
+    name: Build, start and package Docker image
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.16.0
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - name: Validate Compose configuration
+        run: docker compose config --quiet
+      - name: Build a local test image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: .
+          load: true
+          push: false
+          platforms: linux/amd64
+          tags: careerscape:ci
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=careerscape-amd64
+          cache-to: type=gha,mode=max,scope=careerscape-amd64
+      - name: Verify health, native modules, assets and persistent saves
+        run: node scripts/docker-smoke.mjs careerscape:ci
+      - name: Package the tested image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker save careerscape:ci | gzip > "$RUNNER_TEMP/careerscape-image.tar.gz"
+          cd "$RUNNER_TEMP"
+          sha256sum careerscape-image.tar.gz > careerscape-image.sha256
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: careerscape-image
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+          path: |
+            ${{ runner.temp }}/careerscape-image.tar.gz
+            ${{ runner.temp }}/careerscape-image.sha256
+
+  publish:
+    name: Publish tested image to Docker Hub
+    needs: [check, docker]
+    if: >-
+      github.repository == 'guoweiyi/CareerScape' &&
+      github.event_name != 'pull_request' &&
+      (github.ref == format('refs/heads/{0}', github.event.repository.default_branch) || startsWith(github.ref, 'refs/tags/v')) &&
+      (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      IMAGE_NAME: yunyunjuan/careerscape
+    steps:
+      - name: Check whether Docker Hub secrets are configured
+        id: credentials
+        shell: bash
+        env:
+          HUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          HUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [[ -n "$HUB_USERNAME" && -n "$HUB_TOKEN" ]]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Docker Hub publishing skipped: configure DOCKERHUB_USERNAME and DOCKERHUB_TOKEN, then run this workflow with publish enabled."
+            echo 'Docker image built and tested. Publishing was skipped because repository secrets are missing. Download the careerscape-image artifact, or configure DOCKERHUB_USERNAME and DOCKERHUB_TOKEN and run the workflow with publish enabled.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Download the image from this run
+        if: steps.credentials.outputs.configured == 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: careerscape-image
+          path: ${{ runner.temp }}/image
+      - name: Verify and load the tested image
+        if: steps.credentials.outputs.configured == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/image"
+          sha256sum --check careerscape-image.sha256
+          docker load --input careerscape-image.tar.gz
+      - name: Generate image tags
+        if: steps.credentials.outputs.configured == 'true'
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          flavor: latest=false
+          tags: |
+            type=sha,format=long
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+      - name: Sign in to Docker Hub
+        if: steps.credentials.outputs.configured == 'true'
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Push the tested image without rebuilding
+        if: steps.credentials.outputs.configured == 'true'
+        shell: bash
+        env:
+          IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          set -euo pipefail
+          while IFS= read -r tag; do
+            [[ -n "$tag" ]] || continue
+            docker tag careerscape:ci "$tag"
+            docker push "$tag"
+            printf 'Published %s\n\n' "$tag" >> "$GITHUB_STEP_SUMMARY"
+          done <<< "$IMAGE_TAGS"
+          docker image inspect careerscape:ci --format '{{json .RepoDigests}}' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Container publication only; no running application was deployed.' >> "$GITHUB_STEP_SUMMARY"

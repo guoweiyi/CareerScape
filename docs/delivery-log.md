@@ -14,6 +14,13 @@
 | F07-acceptance | 浏览器、回归、部署准备、截图、25主题追踪与CI | 本地与GitHub Ubuntu CI全部通过，见下表与运行链接 | a24090e；已push并ls-remote核实，CI success |
 | F08-endings | 本人结局回顾、冻结版本摘要、原分支链接与待确认动作恢复 | 新增9项SQLite测试；真实浏览器核对已提交记录、回溯保留、原编号IndexedDB持久化和跨分支显式恢复 | 363e73b；已push并ls-remote核实，CI success |
 | F09-studio | 已有节点图形编辑、JSON互通、图诊断、脏数据保护、审核发布 | 新增15项纯函数测试；真实浏览器编辑/循环诊断/保存重读/发布回退/旧局冻结与手机无横向溢出通过 | 480c4dc；已push并ls-remote核实，CI success |
+| F10-container-ci | CI/CD、贡献说明、多阶段Docker、同镜像验证后发布Docker Hub | actionlint 1.7.12、Compose、Linux/amd64实际build与完整容器smoke均通过；Secrets只用于受限发布job | 本功能提交；远端运行与实际发布状态收口后补记 |
+
+## Docker 与贡献流程本地验证
+
+2026-10-08：新增`CONTRIBUTING.md`、PR模板与`docs/ci-cd.md`。工作流分为check→docker→publish，使用固定SHA的官方Actions；先验证、打包同一个镜像，再在原仓库默认分支或v*标签按授权发布到`yunyunjuan/careerscape`。PR不登录，缺少`DOCKERHUB_USERNAME`/`DOCKERHUB_TOKEN`时仍提供镜像artifact并明确跳过推送。
+
+本机Docker Desktop实际构建Linux/amd64运行镜像，ID为`sha256:9cd9d0872e3a433e015d1156d6e84561c805f697c3a3f68440a316ee5515ac69`，87,372,476 bytes。真实容器smoke验证UID1000、只读根目录、SQLite/Argon2、游客认领、已提交动作与回执、v1/v2固定清单38个WebP的hash、管理员授权审计，以及重启与重建容器后账号/存档/手账持久化。测试过程中发现随机端口在restart后可能改变，已修为重新读取映射；测试资源已清理。全项目lint、工作流actionlint、Compose配置检查通过。本地镜像验证不代表Docker Hub已经发布，远端结果另记。
 
 ## P1 本轮本地门禁
 

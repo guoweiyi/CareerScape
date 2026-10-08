@@ -31,6 +31,21 @@ pnpm test:e2e
 
 不要在正在运行的开发服务器上同时执行 `build`/`prepare`/`typecheck`（它们会重写Nuxt生成目录）。先停开发服务，执行检查，再启动。
 
+## Docker 与自动交付
+
+从源码在本机运行（Docker Desktop 使用 Linux 容器）：
+
+```sh
+docker compose up -d --build
+docker compose ps
+```
+
+访问 `http://127.0.0.1:3000`。服务以非root用户运行，SQLite保存在命名卷中；默认mock。停止用 `docker compose down`，保留数据时不要加 `--volumes`。
+
+GitHub Actions 在应用测试通过后构建、启动验证并打包 `linux/amd64` 镜像。镜像目标为 `yunyunjuan/careerscape`；在仓库Actions Secrets配置 `DOCKERHUB_USERNAME`、`DOCKERHUB_TOKEN` 后，默认分支推送和 `v*` tag 会在校验后发布，PR只验证。缺少机密时仍提供可下载的镜像artifact；配置后可手动运行 **CI and Docker** 并勾选 `publish`。流程不部署服务器。
+
+完整触发/标签规则见[CI/CD说明](docs/ci-cd.md)，生产参数、持久卷与镜像回退见[部署说明](docs/deployment.md)。参与开发请阅读[贡献指南](CONTRIBUTING.md)。
+
 ## 内容与后台
 
 游客可直接体验；用户名/Argon2id密码注册，注册后显示一次性恢复码。游客存档仅在明确勾选认领后转移。账号页支持导出、校验导入与删除。后台无默认账号、无默认密码：先注册，再由服务器操作者执行 `pnpm exec tsx scripts/db.ts bootstrap-admin <用户名>` 授权；打开 `/admin`。

@@ -1,0 +1,36 @@
+services:
+  careerscape:
+    image: ${CAREERSCAPE_IMAGE:-yunyunjuan/careerscape:latest}
+    build:
+      context: .
+      target: runtime
+    init: true
+    user: "1000:1000"
+    restart: unless-stopped
+    # Local preview is intentionally loopback-only. Put a TLS reverse proxy in
+    # front for public deployment and set APP_ORIGIN to that HTTPS origin.
+    ports:
+      - "127.0.0.1:${CAREERSCAPE_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "3000"
+      DATABASE_PATH: /data/careerscape.sqlite
+      ASSET_PUBLIC_DIR: /app/public
+      AI_PROVIDER: mock
+      APP_ORIGIN: ${APP_ORIGIN:-http://127.0.0.1:${CAREERSCAPE_PORT:-3000}}
+      # The application accepts false only on localhost/127.0.0.1/::1.
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+    volumes:
+      - careerscape-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 30s
+
+volumes:
+  careerscape-data:
