@@ -11,11 +11,13 @@ export function useDrafts() {
   async function put(id: string, value: unknown) {
     const encoded = JSON.stringify(value)
     if (encoded.length > 15000) return
+    // IndexedDB cannot clone Vue reactive proxies. Persist the bounded JSON snapshot.
+    const snapshot: unknown = JSON.parse(encoded)
     const db = await open()
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction('drafts', 'readwrite')
       const store = tx.objectStore('drafts')
-      store.put({ id, value, at: Date.now() })
+      store.put({ id, value: snapshot, at: Date.now() })
       const request = store.getAll()
       request.onsuccess = () => {
         const rows = request.result.sort((a, b) => b.at - a.at)

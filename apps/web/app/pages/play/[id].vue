@@ -2,11 +2,17 @@
 import { readJsonlStream, type ActionInput } from '../../../../../packages/contracts'
 import { people, type Session, type Message } from '~/types/game'
 const route = useRoute()
+const router = useRouter()
 const sessionId = String(route.params.id)
 const { identity, ensure, mutate } = useIdentity()
 const preferences = usePreferences(usePinia())
 const castIds = ['lin', 'zhou', 'xu'] as const
-const preferenceOptions = [['textOnly', '纯文字模式'], ['lowData', '低流量模式'], ['reducedMotion', '减少动态效果'], ['showAllText', '直接显示完整对白']] as const
+const preferenceOptions = [
+  ['textOnly', '纯文字模式'],
+  ['lowData', '低流量模式'],
+  ['reducedMotion', '减少动态效果'],
+  ['showAllText', '直接显示完整对白'],
+] as const
 const drafts = useDrafts()
 const prefetch = useScenePrefetch()
 const session = shallowRef<Session | null>(null)
@@ -21,19 +27,29 @@ const streamPreview = shallowRef<{ id: string; speakerId: keyof typeof people; t
 let streamMessages: { id: string; speakerId: keyof typeof people; text: string }[] = []
 let raf = 0
 const busy = ref(false)
+const recovering = ref(false)
+let loadRequest = 0
+let historyRequest = 0
+let disposed = false
 const error = ref('')
 const statusText = ref('正在打开存档…')
 const input = ref('')
 const panel = ref<'history' | 'journal' | 'settings' | 'branches' | null>(null)
 let panelTrigger: HTMLElement | null = null
 const channel = ref('group')
-function openPrivateChat(id: string) { channel.value = id; panel.value = 'history' }
+function openPrivateChat(id: string) {
+  channel.value = id
+  panel.value = 'history'
+}
 const journal = ref('')
 const journalStatus = ref('')
 const journalBusy = ref(false)
 let journalRequest = 0
 const online = ref(true)
 const pending = ref<ActionInput | null>(null)
+const pendingElsewhere = computed(
+  () => !!pending.value && !!session.value && pending.value.branchId !== session.value.branchId,
+)
 let controller: AbortController | undefined
 const messages = computed(() => session.value?.messages ?? [])
 const recentMessages = computed(() => {
@@ -61,26 +77,52 @@ const selectedMessages = computed(() =>
     )
     .slice(-80),
 )
+function resetBranchPanels() {
+  historyRequest++
+  historyPage.value = null
+  historyCursor.value = null
+  hasMoreHistory.value = false
+  journalRequest++
+  journal.value = ''
+  journalStatus.value = ''
+  journalBusy.value = false
+  panel.value = null
+}
 async function load(branchId?: string) {
-  session.value = await $fetch<Session>(`/api/sessions/${sessionId}`, {
-    query: branchId ? { branchId } : undefined,
+  if (disposed) return false
+  const requestId = ++loadRequest
+  const targetBranch = branchId || session.value?.branchId
+  const loaded = await $fetch<Session>(`/api/sessions/${sessionId}`, {
+    query: targetBranch ? { branchId: targetBranch } : undefined,
   })
-  statusText.value = `已保存 · 修订 ${session.value.revision}`
-  prefetch.schedule(session.value.assetManifestVersion, session.value.prefetchAssetIds || [])
+  if (requestId !== loadRequest) return false
+  if (loaded.branchId !== session.value?.branchId) resetBranchPanels()
+  session.value = loaded
+  if (typeof route.query.branchId === 'string' && route.query.branchId !== loaded.branchId)
+    await router.replace({ query: { ...route.query, branchId: loaded.branchId } })
+  if (requestId !== loadRequest) return false
+  statusText.value = `已保存 · 修订 ${loaded.revision}`
+  prefetch.schedule(loaded.assetManifestVersion, loaded.prefetchAssetIds || [])
+  return true
 }
 async function boot() {
+  if (busy.value || disposed) return
+  busy.value = true
   try {
     await ensure()
-    await load()
+    const requestedBranch = typeof route.query.branchId === 'string' ? route.query.branchId : undefined
+    if (!(await load(requestedBranch))) return
     const saved = await drafts.get<{ text: string; pending: ActionInput | null }>(draftKey.value)
     if (saved) {
       input.value = saved.text
       pending.value = saved.pending
-      if (saved.pending) await recover()
+      if (saved.pending) await recover(!requestedBranch)
     }
   } catch (e) {
     error.value = errorText(e)
     statusText.value = '存档尚未同步'
+  } finally {
+    busy.value = false
   }
 }
 function errorText(e: unknown) {
@@ -99,28 +141,40 @@ async function confirmIntent() {
 async function remember() {
   await drafts.put(draftKey.value, { text: input.value, pending: pending.value }).catch(() => undefined)
 }
-async function recover() {
-  if (!pending.value) {
-    await load()
+async function recover(restoreOriginalBranch = false) {
+  if (recovering.value || disposed) return
+  if (pendingElsewhere.value && !restoreOriginalBranch) {
+    statusText.value = '已保留当前路线；另一条路线的行动待确认'
     return
   }
-  const turn = await $fetch<{ status: string; session?: Session }>(`/api/sessions/${sessionId}/turn`, {
-    query: { clientActionId: pending.value.clientActionId },
-  }).catch(() => null)
-  if (turn?.status === 'committed') {
-    await load(pending.value.branchId)
-    pending.value = null
-    input.value = ''
-    await remember()
-    error.value = ''
-    statusText.value = '已恢复服务器确认的结果'
-  } else {
-    await load(pending.value.branchId)
-    statusText.value = '上次操作待确认，可用相同动作编号重试'
+  recovering.value = true
+  try {
+    const action = pending.value
+    if (!action) {
+      await load()
+      return
+    }
+    const turn = await $fetch<{ status: string; session?: Session }>(`/api/sessions/${sessionId}/turn`, {
+      query: { clientActionId: action.clientActionId },
+    }).catch(() => null)
+    if (!(await load(action.branchId))) return
+    if (turn?.status === 'committed') {
+      pending.value = null
+      input.value = ''
+      await remember()
+      error.value = ''
+      statusText.value = '已恢复服务器确认的结果'
+    } else {
+      statusText.value = '上次操作待确认，可用相同动作编号重试'
+    }
+  } catch (e) {
+    error.value = errorText(e)
+  } finally {
+    recovering.value = false
   }
 }
 async function act(kind: ActionInput['kind'], choiceId?: string, retry = false) {
-  if (!session.value || busy.value || (pending.value && !retry)) return
+  if (!session.value || busy.value || recovering.value || pendingElsewhere.value || (pending.value && !retry)) return
   busy.value = true
   error.value = ''
   statusText.value = '正在确认本次行动…'
@@ -180,7 +234,7 @@ async function act(kind: ActionInput['kind'], choiceId?: string, retry = false) 
       controller.signal,
     )
     if (!committed) throw new Error('未收到提交确认，正在保留你的输入')
-    await load(action.branchId)
+    if (!(await load(action.branchId))) return
     pending.value = null
     if (kind === 'message') {
       input.value = ''
@@ -200,17 +254,20 @@ async function act(kind: ActionInput['kind'], choiceId?: string, retry = false) 
   }
 }
 async function fork(eventSeq: number) {
-  if (!session.value) return
+  if (!session.value || busy.value || recovering.value || pending.value) return
   busy.value = true
+  const requestId = ++loadRequest
   error.value = ''
   try {
     const result = await mutate<Session>(`/api/sessions/${sessionId}/fork`, {
       branchId: session.value.branchId,
       eventSeq,
     })
+    if (disposed || requestId !== loadRequest) return
     session.value = result
+    resetBranchPanels()
+    await router.replace({ query: { ...route.query, branchId: result.branchId } })
     panel.value = null
-    pending.value = null
     await remember()
     statusText.value = '已创建新分支，旧路线仍然保留'
   } catch (e) {
@@ -221,41 +278,51 @@ async function fork(eventSeq: number) {
 }
 async function loadHistory(older = false) {
   if (!session.value) return
+  const requestId = ++historyRequest
+  const branchId = session.value.branchId
   try {
     const result = await $fetch<{ messages: Message[]; hasMore: boolean; nextBeforeEventSeq: number | null }>(
       `/api/sessions/${sessionId}/history`,
       {
         query: {
-          branchId: session.value.branchId,
+          branchId,
           ...(older && historyCursor.value ? { beforeEventSeq: historyCursor.value } : {}),
         },
       },
     )
+    if (requestId !== historyRequest || session.value?.branchId !== branchId) return
     historyPage.value = result.messages
     hasMoreHistory.value = result.hasMore
     historyCursor.value = result.nextBeforeEventSeq
   } catch (e) {
-    error.value = errorText(e)
+    if (requestId === historyRequest) error.value = errorText(e)
   }
 }
 async function discardPending() {
-  if (!pending.value) return
-  const turn = await $fetch<{ status: string }>(`/api/sessions/${sessionId}/turn`, {
-    query: { clientActionId: pending.value.clientActionId },
-  })
-  if (turn.status === 'committed') {
-    await recover()
-    return
+  if (!pending.value || busy.value || recovering.value || pendingElsewhere.value) return
+  busy.value = true
+  try {
+    const turn = await $fetch<{ status: string }>(`/api/sessions/${sessionId}/turn`, {
+      query: { clientActionId: pending.value.clientActionId },
+    })
+    if (turn.status === 'committed') {
+      await recover()
+      return
+    }
+    if (turn.status === 'running') {
+      statusText.value = '服务端仍在生成，请稍后查询结果'
+      return
+    }
+    pending.value = null
+    await remember()
+    await load()
+    error.value = ''
+    statusText.value = '已同步，可重新选择。原输入仍保留。'
+  } catch (e) {
+    error.value = errorText(e)
+  } finally {
+    busy.value = false
   }
-  if (turn.status === 'running') {
-    statusText.value = '服务端仍在生成，请稍后查询结果'
-    return
-  }
-  pending.value = null
-  await remember()
-  await load()
-  error.value = ''
-  statusText.value = '已同步，可重新选择。原输入仍保留。'
 }
 function trapFocus(event: KeyboardEvent) {
   if (event.key !== 'Tab') return
@@ -293,32 +360,37 @@ async function openJournal() {
 }
 async function saveJournal() {
   if (journalBusy.value) return
+  const requestId = ++journalRequest
   journalBusy.value = true
   try {
     await mutate(`/api/sessions/${sessionId}/journal`, {
       text: journal.value,
       branchId: session.value?.branchId,
     })
-    journalStatus.value = '已保存，仅你可见。'
+    if (requestId === journalRequest) journalStatus.value = '已保存，仅你可见。'
   } catch (e) {
-    journalStatus.value = errorText(e)
+    if (requestId === journalRequest) journalStatus.value = errorText(e)
   } finally {
-    journalBusy.value = false
+    if (requestId === journalRequest) journalBusy.value = false
   }
 }
 async function switchBranch(id: string) {
+  if (busy.value || recovering.value || pending.value || id === session.value?.branchId) return
+  busy.value = true
   try {
-    await load(id)
+    if (!(await load(id))) return
+    await router.replace({ query: { ...route.query, branchId: id } })
     panel.value = null
-    pending.value = null
     await remember()
   } catch (e) {
     error.value = errorText(e)
+  } finally {
+    busy.value = false
   }
 }
 function networkChanged() {
   online.value = navigator.onLine
-  if (online.value) void recover().catch(() => undefined)
+  if (online.value && !busy.value && !recovering.value) void recover()
 }
 watch(input, remember)
 watch(panel, async (value, previous) => {
@@ -338,6 +410,10 @@ onMounted(() => {
   void boot()
 })
 onBeforeUnmount(() => {
+  disposed = true
+  loadRequest++
+  historyRequest++
+  journalRequest++
   window.removeEventListener('online', networkChanged)
   window.removeEventListener('offline', networkChanged)
   controller?.abort()
@@ -438,6 +514,7 @@ useHead({ title: '栖木工作室 · 职境漫游', meta: [{ name: 'robots', con
           <p>没有适配分数。你可以留下一点感受，也可以直接离开。</p>
           <button class="primary-button" @click="openJournal">写一页手账 ↗</button
           ><button class="subtle-button" @click="panel = 'history'">回看选择，开一条新路线</button>
+          <NuxtLink class="subtle-button" to="/endings">看看走过的结局 ↗</NuxtLink>
         </div>
         <div v-else class="choice-grid">
           <button
@@ -514,13 +591,23 @@ useHead({ title: '栖木工作室 · 职境漫游', meta: [{ name: 'robots', con
         </div>
         <div v-if="error" class="error-message" role="alert">{{ error }}</div>
         <div v-if="pending && !busy" class="notice">
-          上一次行动还未确认。<button
-            class="subtle-button"
-            @click="act(pending!.kind, pending!.choiceId, true)"
-          >
-            原编号重试</button
-          ><button class="subtle-button" @click="recover">查询保存结果</button
-          ><button class="subtle-button" @click="discardPending">同步后重新选择</button>
+          <template v-if="pendingElsewhere">
+            另一条路线有尚未确认的行动。当前仍显示你选择的路线，原动作编号已保留。
+            <button class="subtle-button" :disabled="recovering" @click="recover(true)">
+              前往原路线核对
+            </button>
+          </template>
+          <template v-else>
+            上一次行动还未确认。<button
+              class="subtle-button"
+              :disabled="recovering"
+              @click="act(pending!.kind, pending!.choiceId, true)"
+            >
+              原编号重试</button
+            ><button class="subtle-button" :disabled="recovering" @click="recover()">查询保存结果</button
+            ><button class="subtle-button" :disabled="recovering" @click="discardPending">同步后重新选择</button>
+          </template>
+          <span v-if="recovering" role="status">正在核对服务器记录…</span>
         </div>
       </section>
       <div class="game-bottomline">
@@ -604,7 +691,7 @@ useHead({ title: '栖木工作室 · 职境漫游', meta: [{ name: 'robots', con
             <button
               v-if="m.speakerId === 'narrator' || m.speakerId === 'lin'"
               class="history-action"
-              :disabled="busy"
+              :disabled="busy || recovering || !!pending"
               @click="fork(m.eventSeq)"
             >
               从这里另开一条路线
@@ -637,10 +724,7 @@ useHead({ title: '栖木工作室 · 职境漫游', meta: [{ name: 'robots', con
           </p></template
         >
         <template v-if="panel === 'settings'"
-          ><label
-            v-for="setting in preferenceOptions"
-            :key="setting[0]"
-            class="settings-row"
+          ><label v-for="setting in preferenceOptions" :key="setting[0]" class="settings-row"
             ><input v-model="preferences[setting[0]]" type="checkbox" @change="preferences.save()" />{{
               setting[1]
             }}</label
@@ -655,7 +739,7 @@ useHead({ title: '栖木工作室 · 职境漫游', meta: [{ name: 'robots', con
             <p>{{ branch.parentBranchId ? `从事件 ${branch.forkEventSeq} 分出` : '第一次进入的路线' }}</p>
             <button
               class="subtle-button"
-              :disabled="branch.id === session?.branchId"
+              :disabled="busy || recovering || !!pending || branch.id === session?.branchId"
               @click="switchBranch(branch.id)"
             >
               {{ branch.id === session?.branchId ? '正在这条路线' : '读取这条路线' }}

@@ -17,6 +17,7 @@ export default defineNuxtConfig({
     '/play/**': { ssr: false, headers: { 'cache-control': 'private, no-store' } },
     '/account': { ssr: false, headers: { 'cache-control': 'private, no-store' } },
     '/saves': { ssr: false, headers: { 'cache-control': 'private, no-store' } },
+    '/endings': { ssr: false, headers: { 'cache-control': 'private, no-store' } },
     '/admin': { ssr: false, headers: { 'cache-control': 'private, no-store' } },
     '/feedback': { ssr: false, headers: { 'cache-control': 'private, no-store' } },
     '/art/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },

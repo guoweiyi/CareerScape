@@ -21,6 +21,9 @@ useHead({ title: '我的旅程 · 职境漫游', meta: [{ name: 'robots', conten
     <p class="eyebrow">YOUR POSSIBLE DAYS</p>
     <h1 class="page-title">每走过一天，都有迹可循。</h1>
     <p class="muted">保存的是你当时做出的选择与对话。回来时，故事会从那里继续。</p>
+    <NuxtLink class="secondary-button" to="/endings" style="margin-top: 16px; margin-bottom: 20px"
+      >回顾走过的结局 ↗</NuxtLink
+    >
     <p v-if="identity.user?.isGuest" class="notice">
       你正在使用游客身份。<NuxtLink class="text-link" to="/account">注册并认领这些旅程 ↗</NuxtLink>
     </p>
