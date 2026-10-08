@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Route } from '@playwright/test'
 import { mkdir } from 'node:fs/promises'
 import Database from 'better-sqlite3'
 
@@ -232,15 +232,27 @@ test('提交响应丢失后自动查回同一回合，低流量与纯文字仍�
   const sessionId = page.url().split('/').at(-1)!
   const before = await (await page.request.get(`/api/sessions/${sessionId}`)).json()
   let actionId = ''
-  await page.route(
-    '**/api/sessions/*/action',
-    async (route) => {
-      actionId = route.request().postDataJSON().clientActionId
-      await route.fetch()
-      await route.abort('failed')
-    },
-    { times: 1 },
-  )
+  let actionRequests = 0
+  const actionUrl = new URL(`/api/sessions/${sessionId}/action`, page.url()).href
+  const loseFirstCommittedResponse = async (route: Route) => {
+    actionRequests++
+    if (actionRequests > 1) {
+      await route.continue()
+      return
+    }
+    actionId = route.request().postDataJSON().clientActionId
+    const response = await route.fetch()
+    expect(response.status()).toBe(200)
+    const frames = (await response.text())
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line))
+    expect(frames.some((frame) => frame.type === 'turn_committed')).toBe(true)
+    await route.abort('failed')
+  }
+  // Keep interception stable while the abort immediately triggers the recovery GET.
+  // Removing the final times:1 route here can race Chromium's interception update.
+  await page.route(actionUrl, loseFirstCommittedResponse)
   await page.getByRole('button', { name: /先了解今天要交付什么/ }).click()
   await expect(page.locator('.save-status')).toContainText('已恢复服务器确认的结果')
   const after = await (await page.request.get(`/api/sessions/${sessionId}`)).json()
@@ -249,6 +261,8 @@ test('提交响应丢失后自动查回同一回合，低流量与纯文字仍�
     await page.request.get(`/api/sessions/${sessionId}/turn?clientActionId=${actionId}`)
   ).json()
   expect(receipt.status).toBe('committed')
+  expect(actionRequests).toBe(1)
+  await page.unroute(actionUrl, loseFirstCommittedResponse)
   await page.reload()
   await expect(page.locator('.save-status')).toContainText(`修订 ${after.revision}`)
   await expect(page.locator('.scene-background img')).toHaveCount(1)

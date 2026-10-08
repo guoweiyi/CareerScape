@@ -36,6 +36,8 @@ flowchart LR
 
 工作流的 GitHub token 权限为 `contents: read`，未申请仓库写入权限；Docker Hub 凭据只传给发布 job 的凭据检查和登录步骤。第三方 Actions 固定到完整提交 SHA。
 
+2026-10-08 已核对并固定支持 Node 24 的 checkout 7.0.1、setup-node 7.1.0、pnpm/action-setup 6.1.0、upload-artifact 7.0.2 与 download-artifact 8.0.2。使用 GitHub 托管 Ubuntu runner；自托管 runner 至少需要 2.327.1。镜像 artifact 保持默认 ZIP 归档和解压语义，不设置 `archive:false`。兼容依据：[checkout](https://github.com/actions/checkout/tree/v7.0.1#whats-new)、[setup-node](https://github.com/actions/setup-node/tree/v7.1.0#whats-new-in-v7)、[pnpm v12 支持](https://github.com/pnpm/action-setup/releases/tag/v6.1.0)、[上传输入](https://github.com/actions/upload-artifact/blob/v7.0.2/action.yml)、[下载输入](https://github.com/actions/download-artifact/blob/v8.0.2/action.yml)。
+
 分支 push 和 PR 如果只修改 `docs/**`、`README.md`、`CONTRIBUTING.md` 或 `.github/PULL_REQUEST_TEMPLATE.md`，整个工作流按 `paths-ignore` 跳过。手动运行不受该过滤影响；tag push 不按文件路径过滤。GitHub 的路径过滤语义见[官方工作流语法](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onpushpull_requestpull_request_targetpathspaths-ignore)。
 
 并发组为“工作流名称 + ref”。同一分支或 PR ref 的新运行会取消旧运行；tag ref 不启用自动取消。已经完成的推送不会因后续运行取消而回滚，排查时应看具体步骤与发布摘要。
