@@ -16,6 +16,8 @@
 
 新增/删除节点、拖拽、批量导入、自动播放、成就没有纳入本轮完成范围。下方为P0历史验收基线；最新提交与远端CI结果见[交付日志](delivery-log.md)。
 
+P1远端确认：最终代码提交 `480c4dc630b0d3eea2b5e7c74c6a8f21d84a36ae` 的 [GitHub Actions 37723048742](https://github.com/guoweiyi/CareerScape/actions/runs/37723048742) 已完成且全部成功；前一结局功能提交的 [37722927151](https://github.com/guoweiyi/CareerScape/actions/runs/37722927151) 同样成功。Windows本地与Ubuntu CI均通过本轮门禁，最后仅补文档记录。
+
 ## P0 检查结果（历史基线）
 
 以下命令在本机实际执行。后续仅文档/截图更新不重复宣称增加测试覆盖。
