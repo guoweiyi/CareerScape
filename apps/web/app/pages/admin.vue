@@ -34,6 +34,44 @@ const tokenBudget = ref(12000)
 const seed = ref('careerscape-preview-1')
 const preview = ref('')
 const batchBusy = ref(false)
+const editorMode = ref<'graph' | 'json'>('graph')
+const nodeDirty = ref(false)
+const editorKey = ref(0)
+const parsedPack = computed(() => {
+  try {
+    const parsed = ContentPackSchema.safeParse(JSON.parse(json.value))
+    return parsed.success ? parsed.data : null
+  } catch {
+    return null
+  }
+})
+const draftDirty = computed(() => {
+  if (!selected.value) return false
+  try {
+    return JSON.stringify(JSON.parse(json.value)) !== JSON.stringify(selected.value.manifest)
+  } catch {
+    return true
+  }
+})
+const unsaved = computed(() => draftDirty.value || nodeDirty.value)
+function confirmDiscard() {
+  return !unsaved.value || window.confirm('有尚未保存的剧情修改。确定离开这些修改吗？')
+}
+function selectVersion(pack: AdminPack) {
+  if (busy.value || (pack.id === selected.value?.id && pack.version === selected.value?.version)) return
+  if (confirmDiscard()) select(pack)
+}
+function changeEditor(mode: 'graph' | 'json') {
+  if (mode === editorMode.value) return
+  if (nodeDirty.value && !window.confirm('这个节点还有尚未应用的修改。确定切换编辑方式吗？')) return
+  nodeDirty.value = false
+  editorMode.value = mode
+  editorKey.value++
+}
+function updateGraph(pack: ContentPack) {
+  json.value = JSON.stringify(pack, null, 2)
+  notice.value = '节点已更新到本地草稿，请保存草稿后再检查或发布。'
+}
 async function loadBatches() {
   const result = await $fetch<{ batches: ContentBatch[] }>('/api/admin/batches')
   batches.value = result.batches
@@ -69,6 +107,10 @@ async function runBatch(action: 'plan' | 'generate' | 'resume' | 'validate', dry
 }
 async function previewSeed() {
   if (!selected.value) return
+  if (unsaved.value) {
+    error.value = '请先应用节点修改并保存草稿，再预览这个版本。'
+    return
+  }
   try {
     preview.value = JSON.stringify(
       await mutate('/api/admin/preview', {
@@ -91,9 +133,21 @@ function select(pack: AdminPack) {
   selected.value = pack
   json.value = JSON.stringify(pack.manifest, null, 2)
   notice.value = ''
+  nodeDirty.value = false
+  editorKey.value++
+  preview.value = ''
+  batchId.value = ''
 }
 async function action(kind: string) {
   if (!selected.value) return
+  if (nodeDirty.value) {
+    error.value = '请先应用或撤销当前节点表单的修改。'
+    return
+  }
+  if (draftDirty.value && kind !== 'save') {
+    error.value = '请先保存草稿，再执行检查、审核或版本操作。'
+    return
+  }
   busy.value = true
   error.value = ''
   notice.value = ''
@@ -106,12 +160,18 @@ async function action(kind: string) {
       reason: reason.value || '合成演示内容审核',
       ...(pack ? { pack } : {}),
     })
-    const version = selected.value.version
+    const version = selected.value.version,
+      packId = selected.value.id
     selected.value = null
     await load()
     const packs = data.value?.packs ?? []
     const refreshed = packs.find(
-      (p) => p.version === (kind === 'clone' ? Math.max(...packs.map((p) => p.version)) : version),
+      (p) =>
+        p.id === packId &&
+        p.version ===
+          (kind === 'clone'
+            ? Math.max(...packs.filter((p) => p.id === packId).map((p) => p.version))
+            : version),
     )
     if (refreshed) select(refreshed)
     notice.value = '操作已保存并记录审计。'
@@ -151,6 +211,7 @@ async function updateRole() {
   }
 }
 onMounted(async () => {
+  window.addEventListener('beforeunload', beforeUnload)
   try {
     await ensure()
     await load()
@@ -159,6 +220,14 @@ onMounted(async () => {
     error.value = '当前账号没有内容工作台权限。请由实例管理员在服务器授予编辑/审核/管理员角色。'
   }
 })
+function beforeUnload(event: BeforeUnloadEvent) {
+  if (unsaved.value) {
+    event.preventDefault()
+    event.returnValue = ''
+  }
+}
+onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload))
+onBeforeRouteLeave(() => confirmDiscard())
 useHead({ title: '内容工作台 · 职境漫游', meta: [{ name: 'robots', content: 'noindex,nofollow' }] })
 </script>
 <template>
@@ -181,8 +250,9 @@ useHead({ title: '内容工作台 · 职境漫游', meta: [{ name: 'robots', con
           <button
             v-for="pack in data.packs"
             :key="`${pack.id}-${pack.version}`"
-            :aria-pressed="selected?.version === pack.version"
-            @click="select(pack)"
+            :aria-pressed="selected?.id === pack.id && selected?.version === pack.version"
+            :disabled="busy"
+            @click="selectVersion(pack)"
           >
             {{ pack.title
             }}<small>v{{ pack.version }} · {{ pack.status }} {{ pack.active ? '· 新局入口' : '' }}</small
@@ -192,13 +262,36 @@ useHead({ title: '内容工作台 · 职境漫游', meta: [{ name: 'robots', con
         <section v-if="selected" class="panel">
           <h2>{{ selected.title }} / v{{ selected.version }}</h2>
           <p class="muted">发布版本不可原地覆盖。需要修改时先复制为新草稿；回退只改变新局入口。</p>
-          <label for="pack-json" class="sr-only">内容包 JSON 编辑器</label
-          ><textarea
+          <div class="tabs" role="tablist" aria-label="剧情编辑方式">
+            <button role="tab" :aria-selected="editorMode === 'graph'" @click="changeEditor('graph')">
+              节点视图
+            </button>
+            <button role="tab" :aria-selected="editorMode === 'json'" @click="changeEditor('json')">
+              高级 JSON
+            </button>
+          </div>
+          <p v-if="unsaved" class="notice" role="status">
+            {{ nodeDirty ? '当前节点有尚未应用的修改。' : '草稿已修改，尚未保存到服务器。' }}
+          </p>
+          <ContentGraphEditor
+            v-if="editorMode === 'graph' && parsedPack"
+            :key="editorKey"
+            :model-value="parsedPack"
+            :readonly="selected.status !== 'draft' || busy"
+            @update:model-value="updateGraph"
+            @dirty-change="nodeDirty = $event"
+          />
+          <p v-else-if="editorMode === 'graph'" class="error-message" role="alert">
+            当前 JSON 不符合内容包格式。请在“高级 JSON”修正，再进入节点视图。
+          </p>
+          <label v-if="editorMode === 'json'" for="pack-json" class="sr-only">内容包 JSON 编辑器</label>
+          <textarea
+            v-if="editorMode === 'json'"
             id="pack-json"
             v-model="json"
             class="admin-json"
             spellcheck="false"
-            :readonly="selected.status !== 'draft'"
+            :readonly="selected.status !== 'draft' || busy"
           />
           <div class="form-stack" style="margin-top: 16px">
             <label

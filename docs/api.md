@@ -1,4 +1,4 @@
-# P0 HTTP / JSONL 契约
+# HTTP / JSONL 契约
 
 实现文件为 `apps/web/server/api/**`，领域传输校验为 `packages/contracts/**`。全部私有接口 `Cache-Control: private, no-store`、`Vary: Cookie`。不可把这些路径加进 CDN 共享缓存。
 
@@ -15,10 +15,13 @@
 | POST `/api/auth/recover` | `{username,recoveryCode,newPassword}`；消费一个恢复码、更换密码并撤销全部旧设备 |
 | POST `/api/auth/logout` | 空对象；撤销当前服务端会话并清 Cookie |
 | GET `/api/account/export` | 本人归档 `schemaVersion:'1.1'`、冻结包引用与 SHA-256 校验和；包含存档、分支、实例、事件、快照、手账、可选反馈；无凭据或密码哈希 |
+| GET `/api/account/endings` | 本人结局回顾 `{packs:[{packId,title,totalEndings,unlocked:[{endingId,title,summary,firstCompletedAt,sessionId,branchId,packVersion}]}]}`；只读已提交终局事件，不接收目标账号参数 |
 | POST `/api/account/import` | 请求体为自己的完整 1.1 归档，最多 512,000 UTF-8 字节；返回 `{importedSessions,sessionIds,replayed}`。校验字段、校验和、冻结包与资源、引用和实际行动回放后，在当前身份下创建独立副本；不导入账号权限或回执 |
 | DELETE `/api/account` | `{confirm:"DELETE"}`；级联删除数据并登记最少量删除指纹供备份恢复重放 |
 
 用户名 3—32 位 ASCII 字母、数字或下划线；密码 12—128 字符。密码使用 Argon2id，19 MiB / 2 次 / 单并行。恢复码是高熵随机离线码，无邮件资质依赖；用户必须自行保存，全部丢失不提供绕过身份验证的找回入口。API 的密码/恢复码尝试受数据库限流，错误消息不输出请求体。
+
+结局回顾为 P1 增量：只从本人已提交的公开 `choice/leave` 事件及其冻结包计算，不读取私聊或手账；没有旅程时返回空 `packs`。同一包和结局合并，摘要最多 240 个 Unicode 字符；未解锁结局只计入总数，不返回其 ID、标题或正文。首次完成时间保留最早终局事件，回看链接取最近对应的本人会话与分支；完整语义见[结局回顾说明](endings.md)。
 
 ## 玩家接口
 
@@ -73,6 +76,8 @@ GET `/api/admin` 需要 editor/reviewer/admin 任一内容角色，返回内容�
 POST `/api/admin/content` 接收 `{action,packId,version,pack?,reason?,reviewerType?:'agent'|'human'}`；默认 reviewerType 为 agent，不能把自动检查伪报人工行业审核。`clone/save/check` 仅 editor，`approve` 仅 reviewer，`publish/rollback` 仅 admin。拥有 admin 不隐含其余两个角色；本地 bootstrap CLI 明确授予三项。
 
 流程：克隆旧版本 → 编辑草稿 → 自动检查 → 内容审核 → 发布。正式行业发布要求 domainReviewStatus=verified；原创合成 demo 可保留 pending，但仍要求实际美术文件、许可、审核、数量和 hash 通过。草稿不得开局；已发布正文不可修改。回退只更改新开局入口，旧存档保持固定版本。
+
+P1 已有节点图形编辑器复用上述接口，没有另设可绕过门禁的保存或发布接口。节点表单先应用到页面的本地内容包，再以 `action:'save'` 保存完整草稿；图与高级 JSON 共用同一份内容。字段校验通过但存在图诊断的草稿可以保存，自动检查、审核与发布仍是独立步骤。支持范围、未保存保护和冻结版本规则见[图形编辑器说明](studio-editor.md)。
 
 POST `/api/admin/roles` 为 `{userId,role:'editor'|'reviewer'|'admin',enabled:boolean}`，仅 admin。后台角色无法绕过玩家接口的 owner_id 检查。
 

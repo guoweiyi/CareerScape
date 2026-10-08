@@ -1156,6 +1156,9 @@ h1 {
   grid-template-columns: 260px minmax(0, 1fr);
   gap: 20px;
 }
+.admin-layout > * {
+  min-width: 0;
+}
 .admin-list {
   display: flex;
   flex-direction: column;
@@ -1660,7 +1663,7 @@ h1 {
     padding: 20px;
   }
   .admin-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .admin-list {
     flex-direction: row;

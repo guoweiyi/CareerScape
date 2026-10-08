@@ -21,7 +21,7 @@
 | R15 登录与游客归属 | 服务端游客、密码哈希、Cookie、恢复码、认领 | `services/auth.ts`、`/api/auth/*`、账号页面 | P0 | 一种实际认证方式；导入强制使用当前身份，不接收角色或认证信息；没有接入邮件/手机号/校园 SSO |
 | R16 RBAC、隐私与删除 | 本人/编辑/审核/管理员、CSRF、导出/删除、日志脱敏 | `services/auth.ts`、`server/utils/api.ts`、`/api/account/*` | P0/P1 | 代码已实现；教师/客服私密读取不开放 |
 | R17 数据模型、迁移与 seed | 内容、身份、实例、事件、快照、回执、手账、审计 | `packages/database/`、`scripts/db.ts` | P0 | 实际数据库与合成 seed；私有 SQLite 不提交 Git |
-| R18 内容后台与发布回退 | 草稿→检查→审核→发布、不可变版本、资源门禁、审计、预算批次、seed预览、自愿反馈 | `pages/admin.vue`、`services/content.ts`、`services/batches.ts`、`services/feedback.ts`、对应/admin API及`/api/feedback` | P0 | 结构化包编辑、逐项批次结果、预算续跑、seed预览、显式反馈均已实现并通过服务/浏览器流程；图形编辑器属于P1 |
+| R18 内容后台与发布回退 | 草稿→检查→审核→发布、不可变版本、资源门禁、审计、预算批次、seed预览、自愿反馈 | `pages/admin.vue`、`ContentGraphEditor.vue`、`packages/content/studio.ts`、`services/content.ts`、`services/batches.ts`、`services/feedback.ts` | P0/P1 | 已加入已有节点图形编辑、图诊断、JSON互通和未保存保护；新增/删除、拖拽和批量导入待做。实际流程验证见验收记录 |
 | R19 美术标准与制作记录 | 角色基准、表情参考编辑、场景安全区、许可 | `art/`、美术文档、`scripts/art/export.mjs` | P0 | 21次真实图像生成/参考编辑、逐张智能体视觉复核、实际运行截图已交付；未声称人工行业或法律审核 |
 | R20 实际资产与版本绑定 | 12 立绘、3 头像、4 背景、hash、资源预算、不可覆盖版本 | `apps/web/public/art/manifest.json`、`checkAssets`、`useArt.ts` | P0 | 资源门禁阻止缺失/未知权利发布；最终数量体积见美术报告 |
 | R21 品牌与五类界面 | 剧情、聊天、选择、手账、存读档；手机/桌面 | `BrandMark.vue`、`main.css`、玩家页面、运行截图 | P0 | 代码已实现；390×844 / 1440×900截图与交互检查单独记录 |
@@ -29,6 +29,8 @@
 | R23 自动测试、质量与对抗 | DSL/导入/XSS/提示注入/资源越界/权限/恢复 | `tests/`、Vitest、Playwright、lint/typecheck/build | P0 | 各类测试结果、最终数量与总门禁统一见验收记录；本表不复制易过期计数 |
 | R24 部署、备份与运维 | Node/Nitro、HTTPS反代、SQLite持久卷、备份恢复、CI | `.env.example`、`scripts/db.ts`、运维与CI文档 | P0 | 未部署；生产代理/弱网与远程 libSQL 不冒称已验证 |
 | R25 持续交付与用户/管理指南 | featureId、验收、commit/push/CI、README、ADR、API/用户手册 | `docs/delivery-log.md`、README 与集中管理文档 | P0 | 提交/远端确认由根任务维护；本地通过不能代替 push 成功 |
+
+P1新增映射：本人结局回顾对应R08/R16/R21，权威实现为`services/endings.ts`与`pages/endings.vue`，使用本人冻结版本及已提交终局事件，不暴露未知结局或私密正文；图形编辑对应R06/R18/R21。两项的服务/领域与浏览器流程均在本轮实际通过，范围与待做子项见[路线图](roadmap.md)。
 
 ## 必测行为对照
 

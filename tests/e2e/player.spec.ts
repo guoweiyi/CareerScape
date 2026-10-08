@@ -179,7 +179,7 @@ test('工作台：拒绝普通账号、预算暂停续跑、草稿审核发布�
   await expect(page.locator('.batch-item')).toContainText('14 / 14')
   await page.getByRole('button', { name: '校验候选' }).click()
   await expect(page.locator('.batch-item')).toContainText('completed')
-  await page.getByRole('button', { name: '复制为草稿' }).click()
+  await page.getByRole('button', { name: '复制为草稿', exact: true }).click()
   await expect(page.getByRole('heading', { level: 2 }).first()).toContainText('v3')
   await page.getByLabel('操作原因').fill('自动化验收：合成演示包，仅执行编辑审核，不声明行业事实已审核')
   await page.getByRole('button', { name: '保存草稿' }).click()

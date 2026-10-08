@@ -35,7 +35,9 @@ pnpm test:e2e
 
 游客可直接体验；用户名/Argon2id密码注册，注册后显示一次性恢复码。游客存档仅在明确勾选认领后转移。账号页支持导出、校验导入与删除。后台无默认账号、无默认密码：先注册，再由服务器操作者执行 `pnpm exec tsx scripts/db.ts bootstrap-admin <用户名>` 授权；打开 `/admin`。
 
-内容版本固定，发布需通过schema、路线、组局、资源哈希/许可门禁。后台支持复制草稿、结构编辑、检查、审核、发布、入口回退、seed预览与mock批次预算/续跑；只显示主动提交的自愿反馈，不提供玩家私聊和手账阅读接口。空库以v2开局，同时保留v1历史包；已有库升级不会擅自改变已发布入口。
+内容版本固定，发布需通过schema、路线、组局、资源哈希/许可门禁。后台支持复制草稿、图形节点编辑与高级JSON、检查、审核、发布、入口回退、seed预览与mock批次预算/续跑；只显示主动提交的自愿反馈，不提供玩家私聊和手账阅读接口。空库以v2开局，同时保留v1历史包；已有库升级不会擅自改变已发布入口。
+
+本轮新增[结局回顾](docs/endings.md)：从“我的旅程”或终局进入，只展示本人已提交的结局，回看链接保留原分支。内容工作台的[节点视图](docs/studio-editor.md)可编辑已有节点的对白、背景、解释和选项去向，并提示结构问题与未保存修改；新增/删除节点、拖拽及批量导入仍待实现。
 
 参见 [产品与ADR](docs/product-and-architecture.md)、[用户/管理手册](docs/user-admin-guide.md)、[内容生产](docs/content-library.md)、[叙事与协议](docs/narrative-protocol.md)、[API](docs/api.md)、[存档恢复](docs/content-archive.md)、[美术方向](docs/art-direction.md)、[美术权利记录](ASSET_LICENSES.md)、[交付日志](docs/delivery-log.md)。[25主题追踪](docs/requirements-traceability.md)、[实际验收](docs/verification.md) 和 [P1/P2路线图](docs/roadmap.md) 区分已完成与条件验证。
 
