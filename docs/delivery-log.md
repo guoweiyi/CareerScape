@@ -14,8 +14,18 @@
 | F07-acceptance | 浏览器、回归、部署准备、截图、25主题追踪与CI | 本地与GitHub Ubuntu CI全部通过，见下表与运行链接 | a24090e；已push并ls-remote核实，CI success |
 | F08-endings | 本人结局回顾、冻结版本摘要、原分支链接与待确认动作恢复 | 新增9项SQLite测试；真实浏览器核对已提交记录、回溯保留、原编号IndexedDB持久化和跨分支显式恢复 | 363e73b；已push并ls-remote核实，CI success |
 | F09-studio | 已有节点图形编辑、JSON互通、图诊断、脏数据保护、审核发布 | 新增15项纯函数测试；真实浏览器编辑/循环诊断/保存重读/发布回退/旧局冻结与手机无横向溢出通过 | 480c4dc；已push并ls-remote核实，CI success |
-| F10-container-ci | CI/CD、贡献说明、多阶段Docker、同镜像验证后发布Docker Hub | actionlint 1.7.12、Compose、Linux/amd64实际build与完整容器smoke均通过；Secrets只用于受限发布job | 22d5468；已push并ls-remote核实；远端运行与发布另记 |
-| F11-dialogue-reader | 已提交对白逐段阅读、可选自动翻段、暂停和减少动态 | 新增7项纯函数测试与1项浏览器流程；全量100项测试、8项浏览器、类型、lint、生产build通过 | a009575；已push并ls-remote核实；远端运行与发布另记 |
+| F10-container-ci | CI/CD、贡献说明、多阶段Docker、同镜像验证后发布Docker Hub | actionlint、Compose、本地与Ubuntu实际build/容器smoke通过；云端镜像artifact已生成；Hub缺Secrets跳过 | 22d5468；修正224cc80；已push，CI 37779614047 success |
+| F11-dialogue-reader | 已提交对白逐段阅读、可选自动翻段、暂停和减少动态 | 新增7项纯函数测试与1项浏览器流程；100项测试、8项浏览器、类型、lint、生产build本地与CI均通过 | a009575；已push；由包含该功能的224cc80完成最终CI |
+
+## CI/CD 最终远端确认
+
+最终可执行提交`224cc80c9527cce21b886f1c81dd0aa4d9b2beb2`已push到`feat/h5-mvp`并用ls-remote核实。[Actions 37779614047](https://github.com/guoweiyi/CareerScape/actions/runs/37779614047)返回`completed / success`：Ubuntu上的类型、lint、14文件100项测试、美术、生产build与8项浏览器（29.4秒）通过；Docker Compose校验、Linux/amd64 build、完整容器smoke、归档与上传均通过。
+
+本次生成的[careerscape-image](https://github.com/guoweiyi/CareerScape/actions/runs/37779614047/artifacts/11551274749)为86,175,533 bytes，外层Actions artifact ZIP的SHA-256为`28998e7d0b597e7fd5b2d76b8276b89e3a515b21c57506654849e1eae08f0b25`，过期时间`2026-10-15T12:53:42Z`。压缩镜像与内部校验文件在artifact中；此处哈希不是Docker Hub镜像digest。另有[browser-evidence](https://github.com/guoweiyi/CareerScape/actions/runs/37779614047/artifacts/11550708985)和Buildx自动生成的构建记录。
+
+发布job确实执行了凭据存在性检查，并报告缺少`DOCKERHUB_USERNAME`/`DOCKERHUB_TOKEN`；下载、加载、生成标签、登录和push步骤全部为`skipped`。因此本轮交付是**自动验证与镜像打包成功，Docker Hub尚未推送**，没有可报告的Hub标签或digest。用户在仓库Actions Secrets补齐两项后，选择实际默认分支`feat/h5-mvp`，手动运行`CI and Docker`并勾选`publish`；详见[配置说明](ci-cd.md)。未读取凭据、未登录本机Docker Hub、未部署服务。
+
+本机生产预览`http://127.0.0.1:3000`已启动，health返回ok，沿用原预览SQLite与mock。本次最后只补记文档，不触发新的代码CI，也不将文档提交SHA冒充上述已验证镜像的源码SHA。
 
 ## CI 首次运行与验收修正
 

@@ -75,10 +75,12 @@ SHA 标签关联源代码提交；精确识别已发布镜像时使用本次运�
 
 ## Artifact 与结果核验
 
-两个 artifact 均配置保留 **7 天**：
+工作流显式上传的两个 artifact 均配置保留 **7 天**：
 
 - **browser-evidence**：测试结束时尝试上传 `test-results/`、`playwright-report/` 和 `docs/screenshots/`，包含浏览器失败证据及页面截图。
 - **careerscape-image**：仅在镜像构建和启动检查成功后上传，包含 `careerscape-image.tar.gz` 与 `careerscape-image.sha256`。它是本次已测试镜像，缺少 Docker Hub Secrets 时也会保留。
+
+Buildx Action 还会附带上传名为`guoweiyi~CareerScape~….dockerbuild`的构建记录；它不是可加载镜像，不参与发布。其保留期沿用Action/仓库默认设置，本次实际为90天。发布下载时指定`name: careerscape-image`，不会混入构建记录或浏览器证据。
 
 镜像 artifact 可在对应 Actions run 页面下载。发布 job 用同一份 SHA-256 文件核对压缩镜像，再加载并推送。保留期届满后需要重新运行工作流生成新的可下载 artifact，不能把临时 artifact 当作长期发布仓库。
 
