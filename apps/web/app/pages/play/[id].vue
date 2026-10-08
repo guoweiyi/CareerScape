@@ -34,7 +34,7 @@ let disposed = false
 const error = ref('')
 const statusText = ref('正在打开存档…')
 const input = ref('')
-const panel = ref<'history' | 'journal' | 'settings' | 'branches' | null>(null)
+const panel = ref<'history' | 'journal' | 'settings' | 'branches' | 'reading' | null>(null)
 let panelTrigger: HTMLElement | null = null
 const channel = ref('group')
 function openPrivateChat(id: string) {
@@ -174,7 +174,8 @@ async function recover(restoreOriginalBranch = false) {
   }
 }
 async function act(kind: ActionInput['kind'], choiceId?: string, retry = false) {
-  if (!session.value || busy.value || recovering.value || pendingElsewhere.value || (pending.value && !retry)) return
+  if (!session.value || busy.value || recovering.value || pendingElsewhere.value || (pending.value && !retry))
+    return
   busy.value = true
   error.value = ''
   statusText.value = '正在确认本次行动…'
@@ -533,6 +534,9 @@ useHead({ title: '栖木工作室 · 职境漫游', meta: [{ name: 'robots', con
         </div>
         <div class="game-utility">
           <div>
+            <button class="subtle-button" data-testid="open-dialogue-reader" @click="panel = 'reading'">
+              逐段阅读
+            </button>
             <button class="subtle-button" :disabled="busy || !!pending" @click="act('explain')">
               读一张材料卡</button
             ><button
@@ -605,7 +609,9 @@ useHead({ title: '栖木工作室 · 职境漫游', meta: [{ name: 'robots', con
             >
               原编号重试</button
             ><button class="subtle-button" :disabled="recovering" @click="recover()">查询保存结果</button
-            ><button class="subtle-button" :disabled="recovering" @click="discardPending">同步后重新选择</button>
+            ><button class="subtle-button" :disabled="recovering" @click="discardPending">
+              同步后重新选择
+            </button>
           </template>
           <span v-if="recovering" role="status">正在核对服务器记录…</span>
         </div>
@@ -627,9 +633,13 @@ useHead({ title: '栖木工作室 · 职境漫游', meta: [{ name: 'robots', con
         role="dialog"
         aria-modal="true"
         :aria-label="
-          { history: '已保存的对话', journal: '私人手账', settings: '体验设置', branches: '路线与存档' }[
-            panel
-          ]
+          {
+            history: '已保存的对话',
+            journal: '私人手账',
+            settings: '体验设置',
+            branches: '路线与存档',
+            reading: '逐段阅读',
+          }[panel]
         "
       >
         <div class="side-panel-header">
@@ -640,11 +650,18 @@ useHead({ title: '栖木工作室 · 职境漫游', meta: [{ name: 'robots', con
                 journal: '我的一页手账',
                 settings: '按舒服的方式体验',
                 branches: '每一次选择，都留下来',
+                reading: '逐段阅读',
               }[panel]
             }}
           </h2>
           <button class="subtle-button" aria-label="关闭面板" @click="panel = null">关闭 ×</button>
         </div>
+        <CommittedDialogue
+          v-if="panel === 'reading' && session"
+          :messages="session.messages"
+          :turn-key="`${session.id}:${session.branchId}:${session.revision}`"
+          :reduced-motion="preferences.reducedMotion"
+        />
         <template v-if="panel === 'history'"
           ><div class="tabs" role="tablist" aria-label="对话频道">
             <button role="tab" :aria-selected="channel === 'group'" @click="channel = 'group'">工作群</button

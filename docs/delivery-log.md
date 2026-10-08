@@ -14,7 +14,14 @@
 | F07-acceptance | 浏览器、回归、部署准备、截图、25主题追踪与CI | 本地与GitHub Ubuntu CI全部通过，见下表与运行链接 | a24090e；已push并ls-remote核实，CI success |
 | F08-endings | 本人结局回顾、冻结版本摘要、原分支链接与待确认动作恢复 | 新增9项SQLite测试；真实浏览器核对已提交记录、回溯保留、原编号IndexedDB持久化和跨分支显式恢复 | 363e73b；已push并ls-remote核实，CI success |
 | F09-studio | 已有节点图形编辑、JSON互通、图诊断、脏数据保护、审核发布 | 新增15项纯函数测试；真实浏览器编辑/循环诊断/保存重读/发布回退/旧局冻结与手机无横向溢出通过 | 480c4dc；已push并ls-remote核实，CI success |
-| F10-container-ci | CI/CD、贡献说明、多阶段Docker、同镜像验证后发布Docker Hub | actionlint 1.7.12、Compose、Linux/amd64实际build与完整容器smoke均通过；Secrets只用于受限发布job | 本功能提交；远端运行与实际发布状态收口后补记 |
+| F10-container-ci | CI/CD、贡献说明、多阶段Docker、同镜像验证后发布Docker Hub | actionlint 1.7.12、Compose、Linux/amd64实际build与完整容器smoke均通过；Secrets只用于受限发布job | 22d5468；已push并ls-remote核实；远端运行与发布另记 |
+| F11-dialogue-reader | 已提交对白逐段阅读、可选自动翻段、暂停和减少动态 | 新增7项纯函数测试与1项浏览器流程；全量100项测试、8项浏览器、类型、lint、生产build通过 | 本功能提交；远端运行与发布另记 |
+
+## 逐段阅读本地验证
+
+2026-10-08：当前回合已提交人物/旁白可手动翻段，也可显式开启3–12秒阅读计时。关闭、隐藏、回合/分支变化或读完后停止；不会选择选项、发送请求或推进状态。浏览器使用受控时钟验证播放、暂停、读完、关闭重开和已提交回合更新；页面隐藏通过Chromium中的visibility事件模拟，不冒称真机切后台验收。UI实拍`reader-390.png`、`reader-1440.png`已检查。
+
+本轮最终本地门禁：14文件100项Vitest通过；8项E2E通过/40.1秒；Nuxt与根TypeScript、全项目lint通过；生产build34.9秒成功。CI/CD功能与阅读功能分别提交，最终远端核验以包含二者的最新提交为准。同分支新运行按工作流规则取消旧运行，不将被取消的中间运行记作通过。
 
 ## Docker 与贡献流程本地验证
 

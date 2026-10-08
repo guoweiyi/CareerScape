@@ -54,6 +54,8 @@ GitHub Actions 在应用测试通过后构建、启动验证并打包 `linux/amd
 
 本轮新增[结局回顾](docs/endings.md)：从“我的旅程”或终局进入，只展示本人已提交的结局，回看链接保留原分支。内容工作台的[节点视图](docs/studio-editor.md)可编辑已有节点的对白、背景、解释和选项去向，并提示结构问题与未保存修改；新增/删除节点、拖拽及批量导入仍待实现。
 
+剧情操作区提供“逐段阅读”：默认手动，可选阅读速度和自动翻段。它只阅读当前回合已提交的对白，读完、关闭、页面隐藏或回合变化即停止，不替玩家作选择。纯文字、低流量和减少动态模式均可使用。
+
 参见 [产品与ADR](docs/product-and-architecture.md)、[用户/管理手册](docs/user-admin-guide.md)、[内容生产](docs/content-library.md)、[叙事与协议](docs/narrative-protocol.md)、[API](docs/api.md)、[存档恢复](docs/content-archive.md)、[美术方向](docs/art-direction.md)、[美术权利记录](ASSET_LICENSES.md)、[交付日志](docs/delivery-log.md)。[25主题追踪](docs/requirements-traceability.md)、[实际验收](docs/verification.md) 和 [P1/P2路线图](docs/roadmap.md) 区分已完成与条件验证。
 
 美术已包含12张透明半身、3个同源头像及4个独立横/竖背景，共38个WebP，约4.49MB；21张实际PNG母版保存在本地 `art/source/`（42.09MB，Git忽略）。仓库保留可部署资源、不可变manifest、生成提示/引用链与hash，母版尚未上传远程存储。运行截图在 `docs/screenshots/`。
