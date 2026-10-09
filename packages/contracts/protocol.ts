@@ -6,7 +6,7 @@ const committedText = { messageId: z.string().min(1), provisional: z.literal(fal
 // The transport carries an opaque full snapshot; callers must validate their session DTO before replacing authoritative state.
 export const FrameSchema = z.discriminatedUnion('type', [
   z.object({ ...envelope, type: z.literal('turn_started'), payload: z.object({ expectedRevision: commitRevision }).strict() }).strict(),
-  z.object({ ...envelope, type: z.literal('message_start'), payload: z.object({ ...committedText, speakerId: z.enum(['lin', 'zhou', 'xu', 'narrator', 'player']) }).strict() }).strict(),
+  z.object({ ...envelope, type: z.literal('message_start'), payload: z.object({ ...committedText, speakerId: z.enum(['lin', 'zhou', 'xu', 'player', 'narrator']) }).strict() }).strict(),
   z.object({ ...envelope, type: z.literal('message_delta'), payload: z.object({ ...committedText, text: z.string().max(16000) }).strict() }).strict(),
   z.object({ ...envelope, type: z.literal('tool_status'), payload: z.object({ status: z.enum(['preparing', 'generating', 'validating', 'saving']), label: z.string().max(100) }).strict() }).strict(),
   z.object({ ...envelope, type: z.literal('turn_committed'), payload: z.object({ revision: commitRevision, eventSeq: z.number().int().nonnegative(), messageIds: z.array(z.string()), session: z.record(z.string(), z.unknown()) }).strict() }).strict(),

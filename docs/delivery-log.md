@@ -1,5 +1,7 @@
 # 按功能交付记录
 
+2026-10-09 AI职业故事增量：新增三个岗位、三类身份、Vue舞台与真实OpenAI兼容生成链路，复用原账号/会话/分支/手账/美术；补0002迁移与1.2混合存档。130项测试、12项完整浏览器回归、类型检查、lint和生产构建通过，见[本轮验收](verification.md)及[配置与研究](galgame.md)。六个研究仓库保留在工作区外；当前缺少真实模型配置，付费smoke被明确拒绝，应用开关保持关闭。本轮仅本地改动，未commit/push、未部署。
+
 日期：2026-10-08（Asia/Shanghai）。仓库初始为空，远程 HEAD 无 commit；本地初始符号分支 main，不假定已有保护策略。开发分支 `feat/h5-mvp`。未部署、未强推、未合并。
 
 | featureId | 验收范围 | 实现/验证 | 提交与远端 |
@@ -77,3 +79,10 @@
 GitHub Actions [P0 checks / 37665752230](https://github.com/guoweiyi/CareerScape/actions/runs/37665752230) 的最终 `status=completed`、`conclusion=success`，核验提交为完整SHA `a24090ea98709ea7a40789aedf34dc86e6474e70`。Linux上安装、Nuxt和根TS、lint、69项测试、两版美术、build及5项浏览器检查均成功，页面证据已作为CI artifact上传。
 
 最后仅补记本段与验收文档；没有改动已验证代码。CI对仅docs/README变更跳过重跑，此次结果仍对应全部可执行交付。空仓库首推后，GitHub报告默认分支为`feat/h5-mvp`；没有既有main可发起PR，也没有擅自合并或改写分支策略。
+
+
+## Google 原生 AI 本机接入（2026-10-09）
+
+整项目增加 Vercel Google 适配器与服务器环境配置，复用AI SDK、角色只读工具与Galgame生成校验，保留已有OpenAI兼容接入与历史存档。真实模型失败不降级保存mock对白；首页与后台正确显示Google在线供应商。开发/预览启动读取根目录.env，Compose读取所选provider；凭据不进入Git。
+
+138项测试、根目录/Nuxt类型检查（Nuxt上游路由插件警告见verification）、lint、生产build和12项浏览器回归通过。真实三职业、旧剧情工具/流式/隐私与生产页面均验收通过，本机开启Galgame。验收脚本与脱敏报告说明见galgame.md与verification.md。仅本地改动，未提交、push或部署；原有文档截图与玩家数据库未覆盖。

@@ -4,7 +4,7 @@
 
 首发方案是单个 Node/Nitro 写服务 + 本地持久卷 SQLite/WAL + better-sqlite3 + Drizzle。数据库路径通过 DATABASE_PATH 指向持久目录；默认仓库 `.data/careerscape.sqlite`，独立输出部署则默认当前工作目录的 `.data`。容器临时文件系统、多个独立写节点与网络盘共享 SQLite 不在本方案范围。
 
-SQL 是带参数的固定语句；不把用户或模型字符串当 SQL。Drizzle schema 提供核心表映射，账户创建使用 Drizzle，事件提交使用同一底层连接的短 immediate 事务以明确写锁。DDL 权威文本为 `packages/database/migrations/0001_initial.sql`，等价 `migration.ts` 内嵌供 Nitro bundler 使用，避免部署后丢失迁移文件。schema_migrations 记录版本；后续 schema 改动必须新增迁移。
+SQL 是带参数的固定语句；不把用户或模型字符串当 SQL。Drizzle schema 提供核心表映射，账户创建使用 Drizzle，事件提交使用同一底层连接的短 immediate 事务以明确写锁。DDL 权威文本为 `packages/database/migrations/0001_initial.sql` 与新增 `0002_galgame.sql`，等价 `migration.ts` 内嵌供 Nitro bundler 使用，避免部署后丢失迁移文件。schema_migrations 记录版本，启动仅顺序执行尚未应用的迁移。0002为既有packs/sessions增加默认story模式，保存职业实例、每日额度和真实模型调用元数据；故障、回执、配额和归档细节见[AI职业故事说明](galgame.md)。
 
 数据库包含账号/服务端身份/恢复码/限流/删除指纹、职业Profile/来源/事实/模板/批任务/审核/发布/审计、玩家局/分支/实例/事件/快照/动作回执/生成租约/事件实例、手账/反馈和模型用量元数据。`owner_id` 外键级联覆盖私密数据；仅脱敏删除记录可保留。
 
@@ -44,13 +44,13 @@ seed 是公开原创合成 fixture，未读取真实个人资料。美术不齐�
 
 ## AI provider
 
-默认 `AI_PROVIDER=mock`；回复明显标注【模拟对话】，用量为零，不发网络模型请求。真实 provider 需要操作者显式设置 `AI_PROVIDER=openai`、`OPENAI_API_KEY`，可设置 OPENAI_MODEL。key 仅在服务端环境中，后台只展示 provider/model/prompt 版本名。
+默认 `AI_PROVIDER=mock`；回复明显标注【模拟对话】，用量为零，不发网络模型请求。Google 原生 provider 使用 `AI_PROVIDER=google`、`GOOGLE_GENERATIVE_AI_API_KEY`、`GOOGLE_MODEL`，可设置 `GOOGLE_BASE_URL`；OpenAI 兼容 provider 使用 `AI_PROVIDER=openai`、`OPENAI_API_KEY`、`OPENAI_MODEL` 和 `OPENAI_BASE_URL`。key 仅在服务端环境中，后台只展示 provider/model/prompt 版本名。
 
 SDK7 的 `generateText`、`streamText`、`tool` 和 `stepCountIs` 已使用安装包类型编译。在线接口使用 generateText 完成候选后再事务提交；独立 streamRoleText 提供只读流式表达适配，P0玩家未启用未提交预览。白名单工具仅 readKnownFact，逐次核对角色可知事实 ID，无任意网络/文件/SQL能力、无业务副作用，最多两步及两次工具执行，24,000字符上下文上限，500 output tokens，25秒超时，SDK重试0。工具不负责推进剧情。
 
 每次角色调用只提供自己的设定、已知事实及 sourceEventIds、实际收到的群聊/本人私聊、当前允许行动与玩家输入。旁白解释、手账、其他NPC私聊、其他分支和未来节点不进入上下文。角色工具只读；规则裁定才能更新状态。自由输入默认是对话，不把“帮我提交”误当成已执行。
 
-模型失败降级到明确标记的 mock；失败上游可能已产生用量，因此用量记录说明上游 token/费用未知，不能把 fallback 的 0 计数当作真实无费用。当前未设置真实 API key、未运行付费生成质量回归，也没有真实费用/延迟结论。记录 provider/model/prompt/pack/事实ID/token/延迟/费用来源，不记录思维链或完整 prompt。
+真实模型失败返回安全错误，回合不提交；只有显式 mock 配置产生模拟回复。上游失败仍可能产生费用，不能当作真实无费用。Google 配置和真实验收步骤见 `galgame.md`：`pnpm ai:smoke` 验证旧剧情、工具与流式，`pnpm galgame:smoke` 验证三职业流程；两者使用隔离内存数据库。记录 provider/model/prompt/pack/事实ID/token/延迟/费用来源，不记录思维链或完整 prompt。
 
 ## 部署要求与后续路径
 

@@ -82,7 +82,7 @@ useHead({ title: '走过的结局 · 职境漫游', meta: [{ name: 'robots', con
                 }}<br />回看存档 · 内容 v{{ ending.packVersion }}</small
               >
               <NuxtLink
-                :to="{ path: `/play/${ending.sessionId}`, query: { branchId: ending.branchId } }"
+                :to="{ path: `${ending.mode === 'galgame' ? '/galgame' : '/play'}/${ending.sessionId}`, query: { branchId: ending.branchId } }"
                 class="secondary-button"
                 >回看这条路线 ↗</NuxtLink
               >

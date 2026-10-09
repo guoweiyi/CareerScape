@@ -60,7 +60,7 @@ PR 标题和描述使用中文，并按[模板](.github/PULL_REQUEST_TEMPLATE.md
 
 玩家私聊、手账、探索顾虑默认仅本人可见。后台角色不自动获得私密内容，模型上下文只包含角色有权接收的信息。新增导出、日志、反馈、统计或支持功能时，检查字段级范围、本人归属、Origin/CSRF、缓存和删除行为；不要把真实玩家记录放入测试夹具、问题单、CI artifact 或模型提示。
 
-以下内容不得提交：`.env`、API key、Docker Hub token、SSH 私钥、部署凭据、Cookie、恢复码、SQLite 数据库及 WAL、备份、真实玩家导出文件、含敏感信息的日志。`.gitignore` 只是辅助，提交前仍需检查暂存区。需要修复凭据泄漏时，先撤销或轮换凭据，再按仓库维护流程清理；只删一行提交不能撤销已经泄漏的凭据。
+以下内容不得提交：`.env`、API key、SSH 私钥、部署凭据、Cookie、恢复码、SQLite 数据库及 WAL、备份、真实玩家导出文件、含敏感信息的日志。`.gitignore` 只是辅助，提交前仍需检查暂存区。需要修复凭据泄漏时，先撤销或轮换凭据，再按仓库维护流程清理；只删一行提交不能撤销已经泄漏的凭据。
 
 ## 验证变更
 
@@ -79,7 +79,7 @@ pnpm exec playwright install chromium
 pnpm test:e2e
 ```
 
-Linux CI 安装浏览器及系统依赖时使用 `pnpm exec playwright install --with-deps chromium`。Playwright 启动生产构建、使用隔离的测试 SQLite 与 mock，不需要真实 AI 密钥，并占用 `127.0.0.1:3100`；执行前完成构建并确认端口空闲。结果产物留在忽略目录。
+Linux CI 安装浏览器及系统依赖时使用 `pnpm exec playwright install --with-deps chromium`。Playwright 启动生产构建、使用隔离的测试 SQLite 与本地 Google 协议模型 fixture，不读取生产 AI 密钥，也不调用外部模型；应用与 fixture 分别占用 `127.0.0.1:3100` 和 `127.0.0.1:3219`。执行前完成构建并确认端口空闲；结果产物留在忽略目录。
 
 不要在开发服务器运行时同时执行 `build`、`prepare` 或 `typecheck`，它们会重写 Nuxt 生成目录。格式化可针对改动文件运行 `pnpm exec prettier --write <文件>`，避免引入无关改动。
 
@@ -87,6 +87,6 @@ Linux CI 安装浏览器及系统依赖时使用 `pnpm exec playwright install -
 
 ## 镜像与发布
 
-目标镜像为 `docker.io/yunyunjuan/careerscape`。CI 检查和 Docker Hub 发布边界见 [CI/CD 说明](docs/ci-cd.md)，运行部署见[部署说明](docs/deployment.md)。
+当前 CI/CD 设计按应用检查、Docker 镜像验收、服务器部署顺序执行：通过 SSH 直接上传同一次运行的已验证镜像，不使用 Docker Hub。PR 和功能分支只验证，默认分支的部署规则见 [CI/CD 说明](docs/ci-cd.md)，持久化、备份与回退见[部署说明](docs/deployment.md)。代码审核通过前，不将本地配置或已取消的工作流描述为已经上线。
 
-Docker Hub 用户名和 access token 由有权限的维护者填写到 GitHub Actions Secrets：`DOCKERHUB_USERNAME`、`DOCKERHUB_TOKEN`。不要在 PR、聊天、仓库文件或工作流明文中提供凭据。PR 验证不应依赖发布凭据；镜像发布与实际部署是不同操作，发布成功不代表应用已经上线。
+部署参数由有权限的维护者填写到 GitHub Actions Secrets：`DEPLOY_HOST`、`DEPLOY_PORT`、`DEPLOY_USER`、`DEPLOY_SSH_KEY`、`DEPLOY_KNOWN_HOSTS`，仅在部署步骤注入环境变量。自动部署使用 SSH 密钥认证，无需在工作流填写登录密码。不要在 PR、仓库文件或日志中提供真实值；PR 验证不依赖生产凭据，CI 通过不代表应用已经上线。

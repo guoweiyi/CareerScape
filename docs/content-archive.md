@@ -1,8 +1,8 @@
 # 个人归档导出与恢复
 
-账号空间提供 JSON 导出与导入。当前格式是 `schemaVersion: "1.1"`，包含本人会话、分支、冻结实例、实际事件文本、快照、私人手账与反馈；不包含密码哈希、会话 Cookie、角色权限、模型凭据或动作回执。
+账号空间提供 JSON 导出与导入。纯旧故事使用 `schemaVersion: "1.1"`，含 AI 职业故事使用 `"1.2"`，包含本人会话、分支、冻结实例、实际事件文本、快照、私人手账与反馈；不包含密码哈希、会话 Cookie、角色权限、模型凭据或动作回执。
 
-导入入口为 `POST /api/account/import`，走与其他写请求相同的身份、Origin 与 CSRF 检查。`ArchiveService` 位于 `apps/web/server/services/archive.ts`，严格契约与关系校验位于 `packages/contracts/archive.ts`。网页只允许最多 **512 KB** 的文件，与服务端实际 UTF-8 请求上限一致。较大的完整导出可以保存备份，但网页暂不支持恢复；需要受控迁移工具，不截断内容伪装成功。
+导入入口为 `POST /api/account/import`，走与其他写请求相同的身份、Origin 与 CSRF 检查。`ArchiveService` 位于 `apps/web/server/services/archive.ts`，严格契约与关系校验位于 `packages/contracts/archive.ts`。网页和服务端导入上限均为 **16 MiB**（UTF-8字节）。账号导出可包含两种模式；总归档过大时，从“我的旅程”逐局导出。新模式冻结人物资料，并使用保存的生成结果与规则回放，详见 [AI职业故事](galgame.md)。
 
 恢复执行以下检查，全部通过后在单个 SQLite 事务中写入：
 

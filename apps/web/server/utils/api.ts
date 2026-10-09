@@ -5,10 +5,16 @@ import { Store, AppError, invariant } from '../../../../packages/database'
 import { AuthService, type Identity } from '../services/auth'
 import { GameService } from '../services/game'
 import { ContentService } from '../services/content'
+import { GalgameService } from '../services/galgame'
+import { SessionsService } from '../services/sessions'
 
-let runtime: { store: Store; auth: AuthService; game: GameService; content: ContentService } | undefined
+let runtime: { store: Store; auth: AuthService; game: GameService; content: ContentService; galgame: GalgameService; sessions: SessionsService } | undefined
 export function services() {
-  if (!runtime) { const store = new Store(); const content = new ContentService(store); content.seed(); runtime = { store, auth: new AuthService(store), game: new GameService(store), content } }
+  if (!runtime) {
+    const store = new Store(), content = new ContentService(store), game = new GameService(store), galgame = new GalgameService(store)
+    content.seed(); galgame.content.seed()
+    runtime = { store, auth: new AuthService(store), game, content, galgame, sessions: new SessionsService(store, game, galgame) }
+  }
   return runtime
 }
 export const cookieName = 'careerscape_session'
@@ -23,12 +29,12 @@ export function authResponse(event: H3Event, response: { raw?: string; user: unk
   return { user: response.user, csrfToken: response.csrfToken, ...(response.recoveryCodes ? { recoveryCodes: response.recoveryCodes } : {}) }
 }
 export function clearAuth(event: H3Event) { deleteCookie(event, cookieName, { path: '/' }) }
-export async function body(event: H3Event): Promise<unknown> {
+export async function body(event: H3Event, limit = 512_000): Promise<unknown> {
   const length = Number(getHeader(event, 'content-length') || 0)
-  invariant(Number.isFinite(length) && length <= 512_000, 'BODY_TOO_LARGE', 413, '请求内容过大。')
+  invariant(Number.isFinite(length) && length <= limit, 'BODY_TOO_LARGE', 413, '请求内容过大。')
   const stream=event.web?.request?.body || (event.node.req instanceof Readable?Readable.toWeb(event.node.req):getRequestWebStream(event))
   if(!stream)return {}
-  return parseLimitedJsonBody(stream as ReadableStream<Uint8Array>)
+  return parseLimitedJsonBody(stream as ReadableStream<Uint8Array>, limit)
 }
 export async function parseLimitedJsonBody(stream:ReadableStream<Uint8Array>,limit=512_000):Promise<unknown>{
   const reader=stream.getReader(),chunks:Uint8Array[]=[]

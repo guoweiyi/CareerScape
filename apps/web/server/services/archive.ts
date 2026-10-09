@@ -1,3 +1,4 @@
+import { GalgameArchiveService } from './archive-galgame'
 import { SaveArchiveSchema, ArchiveEventPayloadSchema, validateArchiveRelations, type SaveArchive } from '../../../../packages/contracts/archive'
 import { ContentPackSchema, GameInstanceSchema, WorldStateSchema, type ContentPack, type WorldState } from '../../../../packages/contracts'
 import { applyChoice, assemble, choicesFor, occurrenceFor, startState } from '../../../../packages/narrative/engine'
@@ -8,8 +9,9 @@ import { legacyPack } from '../../../../packages/content/seed-v1'
 type ArchivedEvent = SaveArchive['events'][number]
 export class ArchiveService {
   constructor(readonly store: Store) {}
-  import(userId: string, raw: unknown) {
-    invariant(Buffer.byteLength(JSON.stringify(raw), 'utf8') <= 512_000, 'ARCHIVE_TOO_LARGE', 413, '导入文件最多 512 KB；较大归档请由受控迁移工具处理。')
+  import(userId: string, raw: unknown): { importedSessions: number; sessionIds: string[]; replayed: boolean } {
+    invariant(Buffer.byteLength(JSON.stringify(raw), 'utf8') <= 16 * 1024 * 1024, 'ARCHIVE_TOO_LARGE', 413, '导入文件最多 16 MiB，请按局导出。')
+    if (raw && typeof raw === 'object' && 'schemaVersion' in raw && raw.schemaVersion === '1.2') return this.importMixed(userId, raw)
     const archive = SaveArchiveSchema.parse(raw)
     const { checksum, ...body } = archive
     invariant(hash(canonical(body)) === checksum, 'ARCHIVE_CHECKSUM', 400, '归档校验和不一致，文件可能不完整。')
@@ -98,7 +100,7 @@ export class ArchiveService {
       const existing = this.store.get<{ n: number }>('SELECT COUNT(*) n FROM sessions WHERE owner_id=?', userId)!.n
       invariant(existing + archive.sessions.length <= 50, 'SESSION_LIMIT', 409, '导入后会超过 50 局限制，请先管理现有旅程。')
       const sessionIds = new Map(archive.sessions.map(row => [row.id, id()])); const branchIds = new Map(archive.branches.map(row => [row.id, id()])); const eventIds = new Map(archive.events.map(row => [row.id, id()])); const instanceIds = new Map(archive.instances.map(row => [row.id, id()]))
-      for (const row of archive.sessions) this.store.run('INSERT INTO sessions VALUES (?,?,?,?,?,?,?,?)', sessionIds.get(row.id), userId, `${row.title.slice(0, 100)} · 导入副本`, row.pack_id, row.pack_version, branchIds.get(row.current_branch_id), row.created_at, now())
+      for (const row of archive.sessions) this.store.run('INSERT INTO sessions (id,owner_id,title,pack_id,pack_version,current_branch_id,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)', sessionIds.get(row.id), userId, `${row.title.slice(0, 100)} · 导入副本`, row.pack_id, row.pack_version, branchIds.get(row.current_branch_id), row.created_at, now())
       const inserted = new Set<string>()
       const insertBranch = (oldId: string) => {
         if (inserted.has(oldId)) return
@@ -134,4 +136,22 @@ export class ArchiveService {
       return { importedSessions: importedIds.length, sessionIds: importedIds, replayed: false }
     })
   }
+  private importMixed(userId: string, raw: unknown): { importedSessions: number; sessionIds: string[]; replayed: boolean } {
+    const importer = new GalgameArchiveService(this.store), archive = importer.validate(raw)
+    return this.store.transaction(() => {
+      invariant(this.store.get('SELECT id FROM users WHERE id=?', userId), 'UNAUTHORIZED', 401, '请重新登录。')
+      const prior = this.store.get<{ metadata: string }>("SELECT metadata FROM audit_logs WHERE actor_id=? AND action='archive.imported' AND resource_id=?", userId, archive.checksum)
+      if (prior) {
+        const ids = (JSON.parse(prior.metadata) as { sessionIds: string[] }).sessionIds
+        if (ids.every(sessionId => this.store.get('SELECT id FROM sessions WHERE id=? AND owner_id=?', sessionId, userId))) return { importedSessions: ids.length, sessionIds: ids, replayed: true }
+      }
+      invariant(this.store.get<{ n: number }>('SELECT COUNT(*) n FROM sessions WHERE owner_id=?', userId)!.n + archive.sessions.length <= 50, 'SESSION_LIMIT', 409, '导入后会超过50局限制。')
+      const story = importer.storyArchive(archive)
+      const storyIds = story ? this.import(userId, story).sessionIds : []
+      const galgameIds = importer.write(userId, archive), sessionIds = [...storyIds, ...galgameIds]
+      this.store.audit(userId, 'archive.imported', archive.checksum, { sessionIds, sessions: sessionIds.length, format: '1.2' })
+      return { importedSessions: sessionIds.length, sessionIds, replayed: false }
+    })
+  }
+
 }

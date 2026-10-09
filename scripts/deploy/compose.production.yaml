@@ -1,0 +1,32 @@
+services:
+  careerscape:
+    image: ${CAREERSCAPE_IMAGE:?Load the verified image before deployment}
+    pull_policy: never
+    init: true
+    user: "1000:1000"
+    restart: unless-stopped
+    env_file: /opt/careerscape/app.env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "3000"
+      DATABASE_PATH: /data/careerscape.sqlite
+      ASSET_PUBLIC_DIR: /app/public
+      APP_ORIGIN: ${APP_ORIGIN:?Configure the public HTTPS origin}
+      COOKIE_SECURE: "true"
+    ports:
+      - "127.0.0.1:${CAREERSCAPE_PORT:-3300}:3000"
+    volumes:
+      - careerscape-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    stop_grace_period: 30s
+    mem_limit: 768m
+
+volumes:
+  careerscape-data:
+    external: true
+    name: careerscape-data
