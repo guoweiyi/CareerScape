@@ -97,13 +97,24 @@ export class AuthService {
   requireRole(identity: Identity, allowed: string[]) { invariant(identity.user.roles.some(r => allowed.includes(r)), 'FORBIDDEN', 403, '当前账号没有这项内容操作权限。') }
   csrf(identity: Identity, value: string | undefined) { invariant(value && value.length === identity.csrfToken.length && timingSafeEqual(Buffer.from(value), Buffer.from(identity.csrfToken)), 'CSRF_REJECTED', 403, '页面凭据已更新，请刷新后重试。') }
   logout(identity: Identity) { this.store.run('DELETE FROM auth_sessions WHERE token_hash=?', identity.tokenHash) }
-  export(userId: string) {
-    const sessions = this.store.all<{ id: string }>('SELECT * FROM sessions WHERE owner_id=?', userId)
+  export(userId: string, sessionId?: string) {
+    const sessions = this.store.all<{ id: string; mode: 'story' | 'galgame'; pack_id: string; pack_version: string }>(sessionId ? 'SELECT * FROM sessions WHERE owner_id=? AND id=?' : 'SELECT * FROM sessions WHERE owner_id=?', ...sessionId ? [userId, sessionId] : [userId])
+    invariant(!sessionId || sessions.length === 1, 'SESSION_NOT_FOUND', 404, '存档不存在或不属于当前账号。')
     const related = (table: string) => sessions.flatMap(s => this.store.all(`SELECT * FROM ${table} WHERE session_id=?`, s.id))
     this.store.audit(userId, 'account.export', userId)
-    const packageRefs=this.store.all<{id:string;version:string;checksum:string;assetManifestVersion:string}>('SELECT DISTINCT p.id,p.version,p.checksum,p.asset_manifest_version AS assetManifestVersion FROM packs p JOIN sessions s ON s.pack_id=p.id AND s.pack_version=p.version WHERE s.owner_id=?',userId).map(row=>({...row,version:Number(row.version)}))
-    const archive={ schemaVersion: '1.1', exportedAt: now(), owner: this.store.get('SELECT id,username,is_guest,created_at FROM users WHERE id=?', userId),packageRefs, sessions, branches: related('branches'), instances: related('game_instances'), events: related('event_logs'), snapshots: related('snapshots'), journals: related('journals'), feedback: this.store.all('SELECT * FROM feedback WHERE owner_id=?', userId) }
-    return {...archive,checksum:hash(canonical(archive))}
+    const seen = new Set<string>()
+    const packageRefs = sessions.flatMap(session => {
+      const key = `${session.pack_id}:${session.pack_version}`
+      if (seen.has(key)) return []; seen.add(key)
+      const row = this.store.get<{ id: string; version: string; checksum: string; assetManifestVersion: string }>('SELECT id,version,checksum,asset_manifest_version AS assetManifestVersion FROM packs WHERE id=? AND version=?', session.pack_id, session.pack_version)!
+      return [{ ...row, version: Number(row.version) }]
+    })
+    const mixed = sessions.some(session => session.mode === 'galgame')
+    const archive = { schemaVersion: mixed ? '1.2' : '1.1', exportedAt: now(), owner: this.store.get('SELECT id,username,is_guest,created_at FROM users WHERE id=?', userId), packageRefs,
+      sessions: mixed ? sessions : sessions.map(({ mode: _mode, ...session }) => session), branches: related('branches'), instances: related('game_instances'), events: related('event_logs'), snapshots: related('snapshots'), journals: related('journals'),
+      feedback: sessionId ? this.store.all('SELECT * FROM feedback WHERE owner_id=? AND session_id=?', userId, sessionId) : this.store.all('SELECT * FROM feedback WHERE owner_id=?', userId), ...(mixed ? { galgameInstances: related('galgame_instances') } : {}) }
+    invariant(Buffer.byteLength(JSON.stringify(archive), 'utf8') < 15 * 1024 * 1024, 'ARCHIVE_TOO_LARGE', 413, '归档过大，请从我的旅程按局导出。')
+    return { ...archive, checksum: hash(canonical(archive)) }
   }
   delete(userId: string) {
     this.store.transaction(() => {

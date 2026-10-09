@@ -10,6 +10,7 @@ import { validatePack,assemble } from '../../../../packages/narrative/engine'
 import type { Identity } from './auth'
 import { AuthService } from './auth'
 import { createHash } from 'node:crypto'
+import { modelConfig, roleProviderName } from '../../../../packages/agent/models'
 
 export function projectRoot() {
   const cwd = process.cwd()
@@ -19,7 +20,7 @@ export function projectRoot() {
 }
 const AssetFileSchema=z.object({id:z.string(),file:z.string().regex(/^\/art\/[a-zA-Z0-9_.-]+\.webp$/),sha256:z.string().regex(/^[a-f0-9]{64}$/),bytes:z.number().int().positive().max(8_000_000),width:z.number().int().positive().max(4096),height:z.number().int().positive().max(4096),alpha:z.boolean()})
 const AssetSchema = AssetFileSchema.extend({type: z.enum(['character', 'avatar', 'background']), reviewStatus: z.literal('agent-reviewed'), rights: z.object({ licenseRecordId: z.string().min(1), redistributionApproved: z.literal(true) }),variants:z.union([z.array(AssetFileSchema).max(4),z.object({retina:AssetFileSchema.optional(),mobile:AssetFileSchema.optional()}).strict()]).optional() })
-export function checkAssets(pack: ContentPack, root = projectRoot()): { ok: boolean; errors: string[] } {
+export function checkAssets(pack: Pick<ContentPack, 'assetManifestVersion' | 'assetRefs'>, root = projectRoot()): { ok: boolean; errors: string[] } {
   try {
     invariant(/^[a-zA-Z0-9_.-]{1,80}$/.test(pack.assetManifestVersion),'INVALID_ASSET_VERSION',400,'资源版本名称无效。')
     const fixedManifestName=`art/manifest-${pack.assetManifestVersion}.json`
@@ -70,18 +71,18 @@ export class ContentService {
       for (const c of pack.characters) addTemplate(c.id, 'character', c, c.sourceFactIds)
       addTemplate(pack.project.id, 'project', pack.project, [])
       for (const e of pack.events) addTemplate(e.id, 'event', e, e.sourceFactIds)
-      const existing = this.store.get<PackRow>('SELECT * FROM packs WHERE id=? AND version=?', pack.id, String(pack.version))
+      const existing = this.store.get<PackRow>('SELECT * FROM packs WHERE mode=\'story\' AND id=? AND version=?', pack.id, String(pack.version))
       if (!existing) {
-        const canInitialize=gate.ok&&!this.store.get('SELECT id FROM packs WHERE id=? AND active=1',pack.id)
+        const canInitialize=gate.ok&&!this.store.get('SELECT id FROM packs WHERE mode=\'story\' AND id=? AND active=1',pack.id)
         this.insert(pack,canInitialize?'published':'approved',canInitialize)
         this.store.audit(null, canInitialize?'seed.demo_published':gate.ok?'seed.awaiting_activation':'seed.awaiting_assets', `${pack.id}@${pack.version}`, { reviewerType: 'agent', domainReviewStatus: 'pending', errors: gate.errors })
-      } else if (gate.ok && existing.status === 'approved' && !this.store.get('SELECT id FROM packs WHERE id=? AND active=1',pack.id)) {
+      } else if (gate.ok && existing.status === 'approved' && !this.store.get('SELECT id FROM packs WHERE mode=\'story\' AND id=? AND active=1',pack.id)) {
         this.store.run('UPDATE packs SET active=0 WHERE id=?', pack.id)
         this.store.run('UPDATE packs SET status=?,active=1 WHERE id=? AND version=?', 'published', pack.id, String(pack.version))
         this.store.audit(null, 'seed.demo_published', `${pack.id}@${pack.version}`, { reviewerType: 'agent', domainReviewStatus: 'pending' })
       }
       if (gate.ok) this.store.run("UPDATE templates SET content_status='published' WHERE profile_id=? AND version=?", pack.profile.id, String(pack.version))
-      if(legacyPack.version!==pack.version&&!this.store.get('SELECT id FROM packs WHERE id=? AND version=?',legacyPack.id,String(legacyPack.version))){
+      if(legacyPack.version!==pack.version&&!this.store.get('SELECT id FROM packs WHERE mode=\'story\' AND id=? AND version=?',legacyPack.id,String(legacyPack.version))){
         const legacy=ContentPackSchema.parse(legacyPack),legacyAssets=checkAssets(legacy)
         if(legacyAssets.ok){
           this.insert(legacy,'published',false)
@@ -89,42 +90,42 @@ export class ContentService {
         }
       }
     })
-    const stored=this.store.get<PackRow>('SELECT * FROM packs WHERE id=? AND version=?',pack.id,String(pack.version))!
+    const stored=this.store.get<PackRow>('SELECT * FROM packs WHERE mode=\'story\' AND id=? AND version=?',pack.id,String(pack.version))!
     return { packId: pack.id, version: pack.version,status:stored.status,active:Boolean(stored.active),assetGate: gate }
   }
   insert(pack: ContentPack, status: string, active = false) {
-    this.store.run('INSERT INTO packs VALUES (?,?,?,?,?,?,?,?,?,?,?)', pack.id, String(pack.version), pack.datasetVersion, pack.contentBuildId, pack.assetManifestVersion, JSON.stringify(pack), hash(canonical(pack)), status, pack.domainReviewStatus, active ? 1 : 0, now())
+    this.store.run('INSERT INTO packs (id,version,dataset_version,content_build_id,asset_manifest_version,manifest,checksum,status,domain_review_status,active,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)', pack.id, String(pack.version), pack.datasetVersion, pack.contentBuildId, pack.assetManifestVersion, JSON.stringify(pack), hash(canonical(pack)), status, pack.domainReviewStatus, active ? 1 : 0, now())
   }
   get(packId: string, version?: number | string): ContentPack {
-    const row = version === undefined ? this.store.get<PackRow>("SELECT * FROM packs WHERE id=? AND active=1 AND status='published'", packId) : this.store.get<PackRow>('SELECT * FROM packs WHERE id=? AND version=?', packId, String(version))
+    const row = version === undefined ? this.store.get<PackRow>("SELECT * FROM packs WHERE mode='story' AND id=? AND active=1 AND status='published'", packId) : this.store.get<PackRow>('SELECT * FROM packs WHERE mode=\'story\' AND id=? AND version=?', packId, String(version))
     invariant(row, 'PACK_UNAVAILABLE', 409, '该职业包尚未发布或暂时不可用。')
     const pack = ContentPackSchema.parse(JSON.parse(row.manifest))
     // SQL publication state is authoritative; callers can read drafts in the editor but cannot assemble them.
     return ContentPackSchema.parse({ ...pack, contentStatus: row.status })
   }
   catalog() {
-    const rows = this.store.all<PackRow>('SELECT * FROM packs ORDER BY active DESC,version DESC')
+    const rows = this.store.all<PackRow>('SELECT * FROM packs WHERE mode=\'story\' ORDER BY active DESC,CAST(version AS INTEGER) DESC')
     const seen = new Set<string>()
     return { occupations: rows.filter(r => { if (seen.has(r.id)) return false; seen.add(r.id); return true }).map(row => {
       const p = ContentPackSchema.parse(JSON.parse(row.manifest))
       return { id: p.occupationId, title: p.title, description: p.subtitle, packId: p.id, packVersion: p.version, status: row.active && row.status === 'published' ? 'playable' : 'preparing', synthetic: true, assetManifestVersion: p.assetManifestVersion }
-    }), provider: process.env.AI_PROVIDER === 'openai' ? 'openai' : 'mock' }
+    }), provider: roleProviderName() }
   }
   overview(identity: Identity) {
     new AuthService(this.store).requireRole(identity, ['editor', 'reviewer', 'admin'])
     const audit=this.store.all<{action:string;resourceId:string;metadata:string;createdAt:string}>('SELECT action,resource_id AS resourceId,metadata,created_at AS createdAt FROM audit_logs ORDER BY created_at DESC LIMIT 60').map(row=>({...row,metadata:JSON.parse(row.metadata) as Record<string,unknown>}))
-    return { user: identity.user, roles: identity.user.roles, packs: this.store.all<PackRow>('SELECT * FROM packs').map(row => { const pack = ContentPackSchema.parse(JSON.parse(row.manifest)); return { id: row.id, version: Number(row.version), status: row.status, active: Boolean(row.active), domainReviewStatus: row.domain_review_status, title: pack.title, manifest: pack } }), stats: { sessions: this.store.get<{ n: number }>('SELECT COUNT(*) n FROM sessions')!.n, contentTemplates: this.store.get<{ n: number }>('SELECT COUNT(*) n FROM templates')!.n },audit, assetGate: checkAssets(demoPack), provider: { name: process.env.AI_PROVIDER || 'mock', model: process.env.AI_PROVIDER === 'openai' ? process.env.OPENAI_MODEL || 'gpt-4.1-mini' : 'deterministic-role-v1', promptVersion: demoPack.promptVersion } }
+    return { user: identity.user, roles: identity.user.roles, packs: this.store.all<PackRow>('SELECT * FROM packs WHERE mode=\'story\'').map(row => { const pack = ContentPackSchema.parse(JSON.parse(row.manifest)); return { id: row.id, version: Number(row.version), status: row.status, active: Boolean(row.active), domainReviewStatus: row.domain_review_status, title: pack.title, manifest: pack } }), stats: { sessions: this.store.get<{ n: number }>('SELECT COUNT(*) n FROM sessions')!.n, contentTemplates: this.store.get<{ n: number }>('SELECT COUNT(*) n FROM templates')!.n },audit, assetGate: checkAssets(demoPack), provider: { name: roleProviderName(), model: roleProviderName() === 'mock' ? 'deterministic-role-v1' : modelConfig(roleProviderName() === 'google' ? 'google' : 'openai').model, promptVersion: demoPack.promptVersion } }
   }
   mutate(identity: Identity, raw: unknown) {
     const input = z.object({ action: z.enum(['clone', 'save', 'check', 'approve', 'publish', 'rollback']), packId: z.string().min(1).max(80), version: z.number().int().positive(), pack: ContentPackSchema.optional(), reviewerType:z.enum(['agent','human']).default('agent'),reason: z.string().trim().min(3).max(1000).default('合成演示内容审核') }).strict().parse(raw)
     const allowed = input.action === 'approve' ? ['reviewer'] : ['publish', 'rollback'].includes(input.action) ? ['admin'] : ['editor']
     new AuthService(this.store).requireRole(identity, allowed)
     return this.store.transaction(() => {
-      const row = this.store.get<PackRow>('SELECT * FROM packs WHERE id=? AND version=?', input.packId, String(input.version))
+      const row = this.store.get<PackRow>('SELECT * FROM packs WHERE mode=\'story\' AND id=? AND version=?', input.packId, String(input.version))
       invariant(row, 'PACK_NOT_FOUND', 404, '内容版本不存在。')
       let pack = ContentPackSchema.parse(JSON.parse(row.manifest))
       if (input.action === 'clone') {
-        const maxVersion = this.store.get<{ n: number }>('SELECT MAX(CAST(version AS INTEGER)) n FROM packs WHERE id=?', pack.id)!.n
+        const maxVersion = this.store.get<{ n: number }>('SELECT MAX(CAST(version AS INTEGER)) n FROM packs WHERE mode=\'story\' AND id=?', pack.id)!.n
         pack = ContentPackSchema.parse({ ...pack, version: maxVersion + 1, contentStatus: 'draft', contentBuildId: `${pack.contentBuildId}-v${maxVersion + 1}`, nodes: pack.nodes.map(n => ({ ...n, packVersion: maxVersion + 1 })) })
         this.insert(pack, 'draft')
       } else if (input.action === 'save') {

@@ -32,6 +32,7 @@ ENV NODE_ENV=production \
 RUN mkdir -p /data && chown node:node /data && chmod 0750 /data
 COPY --from=build /src/apps/web/.output/ /app/
 COPY scripts/container-admin.mjs /app/server/container-admin.mjs
+COPY scripts/container-db.mjs /app/server/container-db.mjs
 COPY ASSET_LICENSES.md /app/ASSET_LICENSES.md
 # Fresh named volumes inherit /data ownership. Existing volumes must be writable
 # by UID/GID 1000; permissions are never widened or recursively rewritten here.

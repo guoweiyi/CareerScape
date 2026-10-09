@@ -71,7 +71,7 @@ describe('受约束存档导入', () => {
   })
   it('文件超限和旧资源不可用时拒绝，保留原文件而非套用新版本', () => {
     const { auth, userId, importer } = setup(); const archive = auth.export(userId)
-    expect(() => importer.import(userId, { ...archive, text: '大'.repeat(180000) })).toThrow('512 KB')
+    expect(() => importer.import(userId, { ...archive, text: '大'.repeat(6 * 1024 * 1024) })).toThrow('16 MiB')
     vi.mocked(checkAssets).mockReturnValue({ ok: false, errors: ['missing fixed version'] })
     expect(() => importer.import(userId, archive)).toThrow('冻结资源版本不可用')
   })

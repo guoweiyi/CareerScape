@@ -1,6 +1,6 @@
 services:
   careerscape:
-    image: ${CAREERSCAPE_IMAGE:-yunyunjuan/careerscape:latest}
+    image: ${CAREERSCAPE_IMAGE:-careerscape:local}
     build:
       context: .
       target: runtime
@@ -17,7 +17,17 @@ services:
       PORT: "3000"
       DATABASE_PATH: /data/careerscape.sqlite
       ASSET_PUBLIC_DIR: /app/public
-      AI_PROVIDER: mock
+      AI_PROVIDER: ${AI_PROVIDER:-mock}
+      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY:-}
+      GOOGLE_MODEL: ${GOOGLE_MODEL:-}
+      GOOGLE_BASE_URL: ${GOOGLE_BASE_URL:-https://generativelanguage.googleapis.com/v1beta}
+      GALGAME_ENABLED: ${GALGAME_ENABLED:-0}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      GALGAME_DAILY_TURNS: ${GALGAME_DAILY_TURNS:-30}
+      GALGAME_TIMEOUT_MS: ${GALGAME_TIMEOUT_MS:-60000}
+      GALGAME_MAX_OUTPUT_TOKENS: ${GALGAME_MAX_OUTPUT_TOKENS:-2000}
       APP_ORIGIN: ${APP_ORIGIN:-http://127.0.0.1:${CAREERSCAPE_PORT:-3000}}
       # The application accepts false only on localhost/127.0.0.1/::1.
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
