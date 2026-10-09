@@ -4,7 +4,7 @@ import { existsSync, mkdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { createHash, randomUUID } from 'node:crypto'
 import * as schema from './schema'
-import { migrationSql } from './migration'
+import { migrationSql, galgameMigrationSql } from './migration'
 
 export const now = () => new Date().toISOString()
 export const id = () => randomUUID()
@@ -24,9 +24,15 @@ export class Store {
     this.sql.pragma('journal_mode = WAL')
     this.sql.pragma('busy_timeout = 5000')
     this.db = drizzle(this.sql, { schema })
-    this.sql.exec(migrationSql)
     this.sql.exec('CREATE TABLE IF NOT EXISTS schema_migrations(version TEXT PRIMARY KEY, applied_at TEXT NOT NULL)')
-    this.sql.prepare('INSERT OR IGNORE INTO schema_migrations VALUES (?,?)').run('0001', now())
+    this.sql.transaction(() => {
+      for (const [version, sql] of [['0001', migrationSql], ['0002', galgameMigrationSql]]) {
+        if (!this.sql.prepare('SELECT version FROM schema_migrations WHERE version=?').get(version)) {
+          this.sql.exec(sql!)
+          this.sql.prepare('INSERT INTO schema_migrations VALUES (?,?)').run(version, now())
+        }
+      }
+    }).immediate()
   }
   get<T>(sql: string, ...args: unknown[]): T | undefined { return this.sql.prepare(sql).get(...args) as T | undefined }
   all<T>(sql: string, ...args: unknown[]): T[] { return this.sql.prepare(sql).all(...args) as T[] }

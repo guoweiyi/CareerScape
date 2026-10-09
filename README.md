@@ -4,6 +4,8 @@
 
 首包《上线前的最后一小时》：在栖木工作室扮演软件测试新人，与林澄、周砚、许知协作处理校园活动报名的重复记录。验证交付、协商范围、交接下班三条路线；可选手账，无职业适配分数。组织、人物、材料均原创合成，行业核验尚未完成。
 
+新增 `/galgame` **AI 职业故事**：可选测试、前端、产品，以及实习生、应届新人或转行身份。AI 现场生成场景、选项和同事回应；可以自由行动、私聊、提交岗位工作产物、回溯路线，并依据实际记录生成就业复盘。复用现有登录、会话、手账、存档与美术；此模式支持 Vercel Google 原生适配器；配置 `AI_PROVIDER=google`、`GOOGLE_GENERATIVE_AI_API_KEY`、`GOOGLE_MODEL` 与可选 `GOOGLE_BASE_URL` 后，先执行 `pnpm ai:smoke` 和 `pnpm galgame:smoke`。模板默认关闭，没有 mock 回退。配置、外部引擎研究、接口与验证范围见 [AI 职业故事说明](docs/galgame.md)。
+
 ## 本地运行
 
 需要 Node 24.16.0、pnpm 12.6.0（具体见 [版本矩阵](docs/VERSION-MATRIX.md)）。
@@ -42,7 +44,7 @@ docker compose ps
 
 访问 `http://127.0.0.1:3000`。服务以非root用户运行，SQLite保存在命名卷中；默认mock。停止用 `docker compose down`，保留数据时不要加 `--volumes`。
 
-GitHub Actions 在应用测试通过后构建、启动验证并打包 `linux/amd64` 镜像。镜像目标为 `yunyunjuan/careerscape`；在仓库Actions Secrets配置 `DOCKERHUB_USERNAME`、`DOCKERHUB_TOKEN` 后，默认分支推送和 `v*` tag 会在校验后发布，PR只验证。缺少机密时仍提供可下载的镜像artifact；配置后可手动运行 **CI and Docker** 并勾选 `publish`。流程不部署服务器。
+GitHub Actions 按 check → docker → deploy 执行：应用和容器验收通过后，直接通过 SSH 上传同一份已验证镜像，在服务器 Docker 加载并启动。默认分支推送自动部署，PR 只验证；手动运行 **CI and Deployment** 可勾选 `deploy`。生产入口使用 HTTPS，SQLite 数据保存在固定卷中；详见 [CI/CD](docs/ci-cd.md) 与 [部署说明](docs/deployment.md)。
 
 完整触发/标签规则见[CI/CD说明](docs/ci-cd.md)，生产参数、持久卷与镜像回退见[部署说明](docs/deployment.md)。参与开发请阅读[贡献指南](CONTRIBUTING.md)。
 

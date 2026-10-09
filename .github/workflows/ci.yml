@@ -1,4 +1,4 @@
-name: CI and Docker
+name: CI and Deployment
 on:
   push:
     branches: ['**']
@@ -8,20 +8,17 @@ on:
     paths-ignore: ['docs/**', 'README.md', 'CONTRIBUTING.md', '.github/PULL_REQUEST_TEMPLATE.md']
   workflow_dispatch:
     inputs:
-      publish:
-        description: Publish the tested image (default branch or v* tag only)
+      deploy:
+        description: Deploy the verified image (default branch only)
         type: boolean
         default: false
 permissions:
   contents: read
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 jobs:
   check:
     name: Typecheck, tests and browser acceptance
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -79,13 +76,8 @@ jobs:
           cache-to: type=gha,mode=max,scope=careerscape-amd64
       - name: Verify health, native modules, assets and persistent saves
         run: node scripts/docker-smoke.mjs careerscape:ci
-      - name: Package the tested image
-        shell: bash
-        run: |
-          set -euo pipefail
-          docker save careerscape:ci | gzip > "$RUNNER_TEMP/careerscape-image.tar.gz"
-          cd "$RUNNER_TEMP"
-          sha256sum careerscape-image.tar.gz > careerscape-image.sha256
+      - name: Package the tested image and deployment files
+        run: node scripts/deploy/package-image.mjs careerscape:ci "$GITHUB_SHA" "$RUNNER_TEMP/image"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: careerscape-image
@@ -93,80 +85,67 @@ jobs:
           retention-days: 7
           compression-level: 0
           path: |
-            ${{ runner.temp }}/careerscape-image.tar.gz
-            ${{ runner.temp }}/careerscape-image.sha256
+            ${{ runner.temp }}/image/*
 
-  publish:
-    name: Publish tested image to Docker Hub
+  deploy:
+    name: Upload verified image and deploy to server
     needs: [check, docker]
     if: >-
       github.repository == 'guoweiyi/CareerScape' &&
-      github.event_name != 'pull_request' &&
-      (github.ref == format('refs/heads/{0}', github.event.repository.default_branch) || startsWith(github.ref, 'refs/tags/v')) &&
-      (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish))
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+      (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy))
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
+    concurrency:
+      group: careerscape-production
+      cancel-in-progress: false
     env:
-      IMAGE_NAME: yunyunjuan/careerscape
+      DEPLOY_HOST: '64.83.12.37'
+      DEPLOY_PORT: '22'
+      DEPLOY_USER: root
     steps:
-      - name: Check whether Docker Hub secrets are configured
-        id: credentials
-        shell: bash
-        env:
-          HUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          HUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-        run: |
-          if [[ -n "$HUB_USERNAME" && -n "$HUB_TOKEN" ]]; then
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Docker Hub publishing skipped: configure DOCKERHUB_USERNAME and DOCKERHUB_TOKEN, then run this workflow with publish enabled."
-            echo 'Docker image built and tested. Publishing was skipped because repository secrets are missing. Download the careerscape-image artifact, or configure DOCKERHUB_USERNAME and DOCKERHUB_TOKEN and run the workflow with publish enabled.' >> "$GITHUB_STEP_SUMMARY"
-          fi
-      - name: Download the image from this run
-        if: steps.credentials.outputs.configured == 'true'
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: careerscape-image
           path: ${{ runner.temp }}/image
-      - name: Verify and load the tested image
-        if: steps.credentials.outputs.configured == 'true'
-        shell: bash
+      - name: Check that this is still the default branch head
+        id: current
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
-          cd "$RUNNER_TEMP/image"
-          sha256sum --check careerscape-image.sha256
-          docker load --input careerscape-image.tar.gz
-      - name: Generate image tags
-        if: steps.credentials.outputs.configured == 'true'
-        id: meta
-        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
-        with:
-          images: ${{ env.IMAGE_NAME }}
-          flavor: latest=false
-          tags: |
-            type=sha,format=long
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
-            type=ref,event=tag
-            type=semver,pattern={{version}}
-      - name: Sign in to Docker Hub
-        if: steps.credentials.outputs.configured == 'true'
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Push the tested image without rebuilding
-        if: steps.credentials.outputs.configured == 'true'
+          head=$(gh api "repos/$GITHUB_REPOSITORY/commits/$DEFAULT_BRANCH" --jq .sha)
+          if [[ "$head" == "$GITHUB_SHA" ]]; then
+            echo 'deploy=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'deploy=false' >> "$GITHUB_OUTPUT"
+            echo 'Superseded commit: server deployment skipped.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload and activate the verified release
+        if: steps.current.outputs.deploy == 'true'
         shell: bash
         env:
-          IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
-          while IFS= read -r tag; do
-            [[ -n "$tag" ]] || continue
-            docker tag careerscape:ci "$tag"
-            docker push "$tag"
-            printf 'Published %s\n\n' "$tag" >> "$GITHUB_STEP_SUMMARY"
-          done <<< "$IMAGE_TAGS"
-          docker image inspect careerscape:ci --format '{{json .RepoDigests}}' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Container publication only; no running application was deployed.' >> "$GITHUB_STEP_SUMMARY"
+          [[ -n "$SSH_KEY" && -n "$KNOWN_HOSTS" ]] || { echo 'Missing deployment SSH secrets.' >&2; exit 1; }
+          mkdir -p "$RUNNER_TEMP/ssh"
+          chmod 700 "$RUNNER_TEMP/ssh"
+          printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/ssh/key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/ssh/known_hosts"
+          chmod 600 "$RUNNER_TEMP/ssh/key" "$RUNNER_TEMP/ssh/known_hosts"
+          trap 'rm -f "$RUNNER_TEMP/ssh/key"' EXIT
+          opts=(-i "$RUNNER_TEMP/ssh/key" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$RUNNER_TEMP/ssh/known_hosts" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4)
+          target="$DEPLOY_USER@$DEPLOY_HOST"
+          cd "$RUNNER_TEMP/image"
+          sha256sum --check careerscape-image.sha256
+          remote="/opt/careerscape/releases/$GITHUB_SHA"
+          ssh "${opts[@]}" -p "$DEPLOY_PORT" "$target" "mkdir -p '$remote'"
+          for file in careerscape-image.tar.gz careerscape-image.sha256 release.json deploy.sh compose.production.yaml; do
+            scp "${opts[@]}" -P "$DEPLOY_PORT" "$file" "$target:$remote/$file.part"
+            ssh "${opts[@]}" -p "$DEPLOY_PORT" "$target" "mv '$remote/$file.part' '$remote/$file'"
+          done
+          ssh "${opts[@]}" -p "$DEPLOY_PORT" "$target" "bash '$remote/deploy.sh' '$GITHUB_SHA' '$GITHUB_RUN_NUMBER'"
+          echo "Deployed commit $GITHUB_SHA to the server; image and HTTPS health verified." >> "$GITHUB_STEP_SUMMARY"

@@ -8,9 +8,9 @@
     "node": ">=24.15.0 <25"
   },
   "scripts": {
-    "dev": "nuxt dev apps/web --host 127.0.0.1",
+    "dev": "node --env-file-if-exists=.env node_modules/nuxt/bin/nuxt.mjs dev apps/web --host 127.0.0.1",
     "build": "nuxt build apps/web",
-    "preview": "node apps/web/.output/server/index.mjs",
+    "preview": "node --env-file-if-exists=.env apps/web/.output/server/index.mjs",
     "prepare": "nuxt prepare apps/web",
     "typecheck": "nuxt typecheck apps/web",
     "test": "vitest run",
@@ -20,12 +20,16 @@
     "db:migrate": "tsx scripts/db.ts migrate",
     "db:seed": "tsx scripts/db.ts seed",
     "db:backup": "tsx scripts/db.ts backup",
+    "galgame:smoke": "node --env-file-if-exists=.env --import tsx scripts/galgame-smoke.ts",
+    "ai:smoke": "node --env-file-if-exists=.env --import tsx scripts/ai-smoke.ts",
+    "ai:browser-smoke": "node --env-file-if-exists=.env --import tsx scripts/ai-browser-smoke.ts",
     "content:plan": "tsx scripts/content/cli.ts plan",
     "content:generate": "tsx scripts/content/cli.ts generate",
     "content:validate": "tsx scripts/content/cli.ts validate",
     "content:publish": "tsx scripts/content/cli.ts publish"
   },
   "dependencies": {
+    "@ai-sdk/google": "4.0.93",
     "@ai-sdk/openai": "4.0.86",
     "@ai-sdk/vue": "4.0.130",
     "@nuxt/ui": "4.11.3",

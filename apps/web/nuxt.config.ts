@@ -1,7 +1,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2026-10-08',
   modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxt/eslint'],
-  css: ['~/assets/css/main.css'],
+  css: ['~/assets/css/main.css', '~/assets/css/galgame.css'],
   devtools: { enabled: false },
   typescript: { strict: true },
   // Nuxt 4.6/Nitro 2.13 Windows path normalization: nuxt/nuxt#36467.
@@ -15,6 +15,8 @@ export default defineNuxtConfig({
   routeRules: {
     '/api/**': { headers: { 'cache-control': 'private, no-store', 'x-content-type-options': 'nosniff' } },
     '/play/**': { ssr: false, headers: { 'cache-control': 'private, no-store' } },
+    '/galgame': { ssr: false, headers: { 'cache-control': 'private, no-store' } },
+    '/galgame/**': { ssr: false, headers: { 'cache-control': 'private, no-store' } },
     '/account': { ssr: false, headers: { 'cache-control': 'private, no-store' } },
     '/saves': { ssr: false, headers: { 'cache-control': 'private, no-store' } },
     '/endings': { ssr: false, headers: { 'cache-control': 'private, no-store' } },

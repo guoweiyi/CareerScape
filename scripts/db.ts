@@ -3,6 +3,7 @@ import { dirname, resolve } from 'node:path'
 import { createHash } from 'node:crypto'
 import { Store, hash, now } from '../packages/database'
 import { ContentService } from '../apps/web/server/services/content'
+import { GalgameContentService } from '../apps/web/server/services/galgame-content'
 
 const command = process.argv[2] || 'migrate'
 const sourcePath = resolve(process.env.DATABASE_PATH || '.data/careerscape.sqlite')
@@ -13,8 +14,8 @@ function foreignKeyErrorCount(database:Store){
   return result.length
 }
 try {
-  if (command === 'migrate') console.log(JSON.stringify({ status: 'migrated', schemaVersion: '0001', integrity: store.sql.pragma('integrity_check', { simple: true }) }))
-  else if (command === 'seed') console.log(JSON.stringify(new ContentService(store).seed(), null, 2))
+  if (command === 'migrate') console.log(JSON.stringify({ status: 'migrated', schemaVersion: '0002', integrity: store.sql.pragma('integrity_check', { simple: true }) }))
+  else if (command === 'seed') { const result = new ContentService(store).seed(); new GalgameContentService(store).seed(); console.log(JSON.stringify(result, null, 2)) }
   else if (command === 'bootstrap-admin') {
     const username = process.argv[3]?.toLowerCase()
     if (!username) throw new Error('用法: pnpm exec tsx scripts/db.ts bootstrap-admin <已注册用户名>')
@@ -30,7 +31,7 @@ try {
     const check = new Store(destination)
     try {
       if (check.sql.pragma('integrity_check',{simple:true}) !== 'ok' || foreignKeyErrorCount(check)) throw new Error('备份完整性检查失败')
-      const manifest={schemaVersion:'0001',createdAt:now(),sha256:createHash('sha256').update(readFileSync(destination)).digest('hex'),tableCounts:Object.fromEntries(['users','sessions','branches','event_logs','snapshots'].map(table=>[table,check.get<{n:number}>(`SELECT COUNT(*) n FROM ${table}`)!.n])),retentionDays:30,containsPersonalData:true}
+      const manifest={schemaVersion:'0002',createdAt:now(),sha256:createHash('sha256').update(readFileSync(destination)).digest('hex'),tableCounts:Object.fromEntries(['users','sessions','branches','event_logs','snapshots'].map(table=>[table,check.get<{n:number}>(`SELECT COUNT(*) n FROM ${table}`)!.n])),retentionDays:30,containsPersonalData:true}
       writeFileSync(`${destination}.manifest.json`,JSON.stringify(manifest,null,2))
       console.log(JSON.stringify({status:'backup_verified',destination,...manifest}))
     } finally {check.close()}

@@ -1,6 +1,6 @@
 # 部署准备与回滚
 
-当前交付没有部署到公网，没有创建云资源或购买服务。首版支持一个 Node 24 写进程和本机持久磁盘上的 SQLite。域名、HTTPS 证书、备份介质、真实 AI 额度由实际运维环境提供。
+本项目通过 GitHub Actions 直接上传已验收镜像至指定服务器。实际部署结果见交付日志；未记录成功验收前，不将 CI 通过视为公网部署成功。首版支持一个 Node 24 写进程和本机持久磁盘上的 SQLite。域名、HTTPS 证书、备份介质、真实 AI 额度由实际运维环境提供。
 
 ## Docker 运行
 
@@ -15,16 +15,11 @@ docker compose logs --tail=100 careerscape
 
 默认仅绑定本机`127.0.0.1:3000`，mock对话，不调用付费模型。`CAREERSCAPE_PORT`可更改宿主机端口。运行用户固定UID/GID 1000，根文件系统只读；SQLite写入`/data/careerscape.sqlite`，对应Compose命名卷`careerscape-data`。新卷继承`/data`所有者；已有卷必须由操作者核对权限后让UID 1000可写，容器不会自动递归改权限或使用777。不要将同一个SQLite卷交给多个写服务。
 
-已有Docker Hub镜像时可以拉取并运行；只有Actions推送成功后目标标签才可用：
+生产部署不使用镜像仓库：Actions 校验同一次运行的镜像 artifact，通过 SSH/SCP 上传服务器，再执行 docker load。生产 Compose 位于 scripts/deploy/compose.production.yaml，不含 build，并设置 pull_policy:never。镜像固定为 careerscape:sha-完整GitSHA，实际镜像 ID 记录在 release.json 与服务器 current.json；具体触发和凭据见 [CI/CD](ci-cd.md)。
 
-```sh
-docker compose pull
-docker compose up -d --no-build
-```
+服务器部署目录为 /opt/careerscape，app.env 保存 AI 密钥、deploy.env 保存固定端口与 HTTPS 来源；两者只允许 root 读取。数据库使用固定 careerscape-data 卷；新卷从运行镜像继承 UID 1000 权限。Caddy 单独管理 HTTPS 和证书卷，TLS-ALPN 验证不占用已有应用的 80 端口。公开入口仅在 health、数据库迁移、资源与可信 TLS 全部验证后激活。
 
-默认镜像`yunyunjuan/careerscape:latest`跟随仓库默认分支。长期环境应把`CAREERSCAPE_IMAGE`设为已核验的`sha-完整GitSHA`标签或`image@sha256:digest`；从Actions发布摘要或Docker Hub记录实际值，不把可变latest当作回退标识。发布触发、仓库机密、标签和下载artifact见[CI/CD说明](ci-cd.md)。从artifact解压后可先用`sha256sum --check careerscape-image.sha256`校验，再`docker load --input careerscape-image.tar.gz`，设置`CAREERSCAPE_IMAGE=careerscape:ci`后用`--no-build`启动。
-
-公开部署时在服务前配置HTTPS代理，显式设置`APP_ORIGIN`为实际HTTPS来源，并设置`COOKIE_SECURE=true`。Compose中的`false`仅供loopback预览，应用会拒绝在公网主机降级Cookie。AI默认固定mock；真实模型需另行调整部署配置、注入服务端密钥并完成模型验收，构建镜像时不传入API密钥。
+公开部署时在服务前配置HTTPS代理，显式设置`APP_ORIGIN`为实际HTTPS来源，并设置`COOKIE_SECURE=true`。Compose中的`false`仅供loopback预览，应用会拒绝在公网主机降级Cookie。本地容器默认 mock；此次生产配置使用服务端 Google 原生协议并开启 Galgame，真实模型仍需完成上线验收，构建镜像时不传入API密钥。
 
 内容后台没有默认账号。先注册普通账号，再由容器操作者授权：
 
@@ -32,7 +27,7 @@ docker compose up -d --no-build
 docker compose exec careerscape node /app/server/container-admin.mjs 已注册用户名
 ```
 
-此命令只给已有正式账号授予editor/reviewer/admin，并记录审计；不创建账号、不读取密码。开发用`pnpm`/`tsx` CLI没有进入运行镜像，不能直接在容器里运行源仓库的`pnpm db:backup`。备份应使用具备SQLite在线备份能力的运维工具，或停写后完整备份持久卷并验证恢复。停止容器用`docker compose down`；`down --volumes`会删除命名卷数据，不能作为更新或回滚步骤。
+此命令只给已有正式账号授予editor/reviewer/admin，并记录审计；不创建账号、不读取密码。开发用`pnpm`/`tsx` CLI没有进入运行镜像，不能直接在容器里运行源仓库的`pnpm db:backup`。生产发布脚本在停止写服务后使用镜像内 container-db.mjs backup /backups/<文件>，校验 SQLite 完整性、外键与 SHA-256；备份不会自动迁移源数据库。停止容器用`docker compose down`；`down --volumes`会删除命名卷数据，不能作为更新或回滚步骤。
 
 容器自检：先`docker build -t careerscape:ci .`，再`node scripts/docker-smoke.mjs careerscape:ci`。脚本仅使用随机命名的临时容器/卷，验证非root、健康检查、SQLite/Argon2、游客认领、真实动作、固定资产hash、管理员审计，以及重启和重建容器后存档仍存在；结束后只清理自己的测试资源。
 

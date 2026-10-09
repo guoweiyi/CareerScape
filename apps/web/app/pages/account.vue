@@ -27,7 +27,7 @@ async function importArchive(event: Event) {
   error.value = ''
   busy.value = true
   try {
-    if (file.size > 512000) throw new Error('存档超过首版512KB导入上限，请保留原导出文件。')
+    if (file.size > 16 * 1024 * 1024) throw new Error('存档超过16MiB导入上限，请从我的旅程按局导出。')
     const archive = JSON.parse(await file.text()) as Record<string, unknown>
     const result = await mutate<{ importedSessions: number }>('/api/account/import', archive)
     notice.value = `已导入 ${result.importedSessions} 条旅程副本，原存档保留。账号身份与权限不会从文件导入。`
@@ -93,7 +93,7 @@ async function logout() {
 async function exportData() {
   try {
     const data = await $fetch('/api/account/export')
-    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }))
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' }))
     const link = document.createElement('a')
     link.href = url
     link.download = 'careerscape-my-data.json'

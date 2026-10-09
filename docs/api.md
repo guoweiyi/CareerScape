@@ -14,9 +14,9 @@
 | POST `/api/auth/login` | `{username,password,claimGuest?:boolean}`；返回 user、csrfToken；明确勾选才能认领当前游客 |
 | POST `/api/auth/recover` | `{username,recoveryCode,newPassword}`；消费一个恢复码、更换密码并撤销全部旧设备 |
 | POST `/api/auth/logout` | 空对象；撤销当前服务端会话并清 Cookie |
-| GET `/api/account/export` | 本人归档 `schemaVersion:'1.1'`、冻结包引用与 SHA-256 校验和；包含存档、分支、实例、事件、快照、手账、可选反馈；无凭据或密码哈希 |
+| GET `/api/account/export` | 本人归档 `schemaVersion:'1.1'`（纯旧故事）或 `'1.2'`（含AI职业故事），可选 `?sessionId=` 单局导出、冻结包引用与 SHA-256 校验和；包含存档、分支、实例、事件、快照、手账、可选反馈；无凭据或密码哈希 |
 | GET `/api/account/endings` | 本人结局回顾 `{packs:[{packId,title,totalEndings,unlocked:[{endingId,title,summary,firstCompletedAt,sessionId,branchId,packVersion}]}]}`；只读已提交终局事件，不接收目标账号参数 |
-| POST `/api/account/import` | 请求体为自己的完整 1.1 归档，最多 512,000 UTF-8 字节；返回 `{importedSessions,sessionIds,replayed}`。校验字段、校验和、冻结包与资源、引用和实际行动回放后，在当前身份下创建独立副本；不导入账号权限或回执 |
+| POST `/api/account/import` | 请求体为自己的完整 1.1/1.2 归档，最多 16 MiB UTF-8 字节；返回 `{importedSessions,sessionIds,replayed}`。校验字段、校验和、冻结包与资源、引用和实际行动回放后，在当前身份下创建独立副本；不导入账号权限或回执 |
 | DELETE `/api/account` | `{confirm:"DELETE"}`；级联删除数据并登记最少量删除指纹供备份恢复重放 |
 
 用户名 3—32 位 ASCII 字母、数字或下划线；密码 12—128 字符。密码使用 Argon2id，19 MiB / 2 次 / 单并行。恢复码是高熵随机离线码，无邮件资质依赖；用户必须自行保存，全部丢失不提供绕过身份验证的找回入口。API 的密码/恢复码尝试受数据库限流，错误消息不输出请求体。
@@ -61,9 +61,19 @@ SessionDTO 的实际 TypeScript 类型导出于 `apps/web/server/services/game.t
 
 JSONL 完整顺序为 `turn_started → tool_status → heartbeat（需要时）→ message_start/message_delta（已提交文本）→ turn_committed → stream_end`。每帧含 protocolVersion/frameId/streamId/streamSeq/turnId/sessionId/branchId/at/type/payload。当前 P0 不展示未经提交的模型 token；所有 delta 带 `provisional:false` 和 `committedRevision`。`turn_committed.session` 提供保存快照，解析器只校验其对象结构；当前页面在完整提交与结束帧校验通过后，通过有归属检查的 GET 会话接口更新权威状态，不直接信任任意快照对象。文字发送前已完成事务；断网不会撤销提交。
 
-增量解析器默认限制单帧 256,000 字节、整流 2,000,000 字节与 4,096 帧。除 UTF-8、schema、归属、连续序号和重复帧校验外，还验证消息起始、消息修订、提交消息集合与唯一业务结果。请求取消会中止待执行的流读取，但不能撤销服务端已保存的动作。导入和传输预算均按 UTF-8 字节计算；导出可能大于网页导入上限，较大归档需受控迁移工具，详见[归档说明](content-archive.md)。
+增量解析器默认限制单帧 256,000 字节、整流 2,000,000 字节与 4,096 帧。除 UTF-8、schema、归属、连续序号和重复帧校验外，还验证消息起始、消息修订、提交消息集合与唯一业务结果。请求取消会中止待执行的流读取，但不能撤销服务端已保存的动作。导入和传输预算均按 UTF-8 字节计算；超大总归档须按局导出，导入统一上限为16 MiB，详见[归档说明](content-archive.md)。
 
 相同 `(sessionId,clientActionId)` 相同正文返回原回执，包含原始实际文本。异正文拒绝 `ACTION_BODY_CONFLICT`；revision 过期拒绝 `REVISION_CONFLICT`；正在生成返回 `TURN_RUNNING`，客户端查询 turn 后使用原 ID 重试。45 秒租约超过生成 25 秒超时，旧工作者在提交前再次校验租约与 revision。过期任务可重领，同一分支同时只准一个有效生成租约。流内失败为 `turn_failed + stream_end`，不是 HTTP 200 就等于保存成功。
+
+## AI 职业故事扩展
+
+共享玩家接口由数据库 `mode` 分派，返回不同的强类型 DTO。`GET /api/catalog` 追加 `galgame:{available,identities,occupations}`，原目录字段保留。`GET /api/sessions` 每项追加 `mode:'story'|'galgame'`。创建新模式传 `{mode:'galgame',careerId:'qa'|'frontend'|'product',player:{name,identity:'intern'|'graduate'|'career-changer',avatar:'leaf'|'sun'|'star',background?},seed?}`。
+
+新动作的公共字段仍是 `clientActionId/expectedRevision/branchId/channel`；kind 为 `begin/choice/act/message/submit_artifact/explain/leave/debrief`。`act/message` 需要 text；`choice` 需要当前 choiceId；`submit_artifact` 需要 `{artifact:{id,taskId,fields}}`，fields 必须完整匹配当前岗位字段。仅 message 可 private 并需要 recipientId；明确分享已知资料使用公开 act 的 shareFactIds。新动作不会把 switch_role 等旧别名当作合法效果。
+
+新 DTO 契约为 `packages/contracts/galgame.ts` 的 `GalgameSessionDTOSchema`，包含公开场景、玩家身份、产物、已知资料、出处、可见历史与分支，不提供完整 world state 或 NPC 私有目标/记忆。JSONL 仍是相同协议与提交顺序。模型生成租约75秒，总生成超时最多60秒；失败无mock回退。历史最多60条且消息数组60,000 UTF-8字节，完整DTO仍限220,000字节。详细限额、重试与归档语义见 [AI职业故事说明](galgame.md)。
+
+结局回顾同时支持新模式，仅计已提交的 actual outcome，条目追加 `mode:'galgame'`，回看链接使用 `/galgame/:id?branchId=`。
 
 ## 后台接口
 
