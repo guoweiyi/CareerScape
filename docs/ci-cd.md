@@ -1,96 +1,37 @@
-# CI/CD 与 Docker Hub 发布
+# CI/CD：验收后直接部署 Docker
 
-工作流为 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)，在 Actions 中显示为 **CI and Docker**。目标镜像固定为 **`docker.io/yunyunjuan/careerscape`**；当前构建、验证和发布的平台为 **`linux/amd64`**，尚未提供 ARM64 多架构镜像。
+参考 `D:/image/ts/agent` 的检查、生产构建、隔离数据库/恢复和浏览器验收思路，保留 CareerScape 的 pnpm/Node 工具链及容器自检。当前流程为 **check → docker → deploy**，不使用镜像发布仓库。
 
-开发与 PR 要求见[贡献指南](../CONTRIBUTING.md)，运行参数、SQLite 持久化和恢复见[部署说明](deployment.md)。本工作流发布容器镜像，不自动部署服务器或修改线上数据库。
+## 触发与门禁
 
-## 三个顺序执行的 job
+PR、所有分支推送、v* 标签及手动运行完成类型、lint、单元测试、固定素材、生产构建和浏览器验收。随后构建 linux/amd64 镜像，验证非 root、SQLite/Argon2、资产、登录、存档以及容器重启/重建和数据库备份恢复。
 
-```mermaid
-flowchart LR
-  A[check：类型 / 测试 / 美术 / 构建 / 浏览器] --> B[docker：构建并启动验证]
-  B --> C[保存已测试镜像与 SHA-256]
-  C --> D[publish：同一次运行下载并校验]
-  D --> E[加载原镜像 / 打标签 / 推送 Docker Hub]
-```
+只有原仓库默认分支推送，或默认分支手动运行并勾选 `deploy`，才部署服务器。默认分支目前是 `feat/h5-mvp`。部署前检查最新分支提交，过时提交不更新服务器。docs/README/贡献说明的纯文档修改仍按 paths-ignore 跳过。
 
-1. **check** 使用 Ubuntu、Node.js 24.16.0 和 pnpm 12.6.0。依次安装锁定依赖，运行 Nuxt 准备、Nuxt/根 TypeScript、lint、Vitest、v1/v2 美术核验、生产构建及 Chromium 浏览器流程。测试使用隔离 SQLite、合成内容和 mock，不需要真实模型凭据。
-2. **docker** 依赖 check 成功，校验 Compose 配置，通过 Buildx 构建并加载 `careerscape:ci`，此时 `push:false`。随后运行 [`scripts/docker-smoke.mjs`](../scripts/docker-smoke.mjs)，再用 `docker save` 导出同一个已测试镜像，压缩并生成 SHA-256 文件。
-3. **publish** 同时依赖 check 和 docker 成功，并检查下述仓库、触发范围与凭据。它只下载**同一次 Actions 运行**的镜像 artifact，校验 SHA-256，执行 `docker load`、`docker tag` 与 `docker push`；发布步骤没有重新构建镜像。
+工作流为 `.github/workflows/ci.yml`，显示名 **CI and Deployment**。官方 Actions 固定提交 SHA。权限默认 contents:read，生产 SSH 凭据仅传入 deploy 步骤；不使用 pull_request_target。新运行不能取消正在更新服务器的任务，deploy 使用 production 并发组，服务器另加 flock。
 
-容器启动检查使用随机命名的独立数据卷、仅 loopback 暴露的端口、非 root 用户、只读根文件系统与 mock。它检查健康状态、首页、可玩内容、游客认领、实际提交和回执、手账、数据库与密码流程、固定美术清单及文件哈希、后台授权审计，并在重启与重建容器后确认数据仍可读取。测试最终清理自己的容器与数据卷，不使用生产存档。
+## 同一镜像直接交付
 
-先验证镜像再推送的原则可参阅 [Docker 官方 test-before-push 指南](https://docs.docker.com/build/ci/github-actions/test-before-push/)。本仓库使用单平台镜像 artifact 在 job 之间传递，发布的是先前加载并测试的镜像。
+Docker 验收通过后，`scripts/deploy/package-image.mjs` 将该镜像标记为 `careerscape:sha-完整GitSHA`，打包为 `careerscape-image.tar.gz`。同一次运行的 artifact 同时保存文件校验、镜像 ID、提交 SHA、部署脚本和生产 Compose 的 SHA-256，保留 7 天。发布阶段没有二次构建。
 
-## 触发与发布条件
+Deploy 下载本次 artifact、验证压缩包，通过 OpenSSH/SCP 上传 `/opt/careerscape/releases/<sha>/`。文件先上传为 .part，再更名。服务器再次校验清单与实际镜像 ID、revision/platform；docker load 后使用 Compose --no-build --pull never 启动。无需 Docker Hub/GHCR 凭据。
 
-| 触发来源                   | 质量检查与镜像验证   | Docker Hub 发布                                                |
-| -------------------------- | -------------------- | -------------------------------------------------------------- |
-| Pull request               | 执行 check 和 docker | 整个 publish job 跳过，不登录、不读取发布凭据、不推镜像        |
-| 普通分支 push              | 执行 check 和 docker | 仅原仓库实际默认分支允许发布；其他分支只验证                   |
-| `v*` tag push              | 执行 check 和 docker | 原仓库通过验证且凭据齐全后发布对应标签                         |
-| 手动运行，`publish` 未勾选 | 执行 check 和 docker | 跳过发布；布尔输入默认 `false`                                 |
-| 手动运行，`publish` 已勾选 | 执行 check 和 docker | 原仓库还必须选择实际默认分支或 `refs/tags/v…`，其他 ref 不发布 |
+## 配置与服务器
 
-发布 job 还要求 `github.repository == 'guoweiyi/CareerScape'`，fork 中的工作流不会向此固定镜像目标发布。默认分支通过 `github.event.repository.default_branch` 动态判断，没有写死 `main`。PR 使用 `pull_request`，不是 `pull_request_target`。
+GitHub repository Secrets：`DEPLOY_HOST` 保存服务器地址，`DEPLOY_PORT` 保存 SSH 端口，`DEPLOY_USER` 保存登录用户名，`DEPLOY_SSH_KEY` 为专用部署私钥，`DEPLOY_KNOWN_HOSTS` 为已经核对的服务器公钥记录。仅部署步骤将这些 Secrets 注入环境变量，工作流和文档不填写实际值。自动部署使用密钥认证，无需保存服务器登录密码。机密缺失、连接失败、校验失败、上线失败均令 deploy 失败，不能用绿色 CI 表示已上线。
 
-工作流的 GitHub token 权限为 `contents: read`，未申请仓库写入权限；Docker Hub 凭据只传给发布 job 的凭据检查和登录步骤。第三方 Actions 固定到完整提交 SHA。
+目标从上述 Secrets 读取。本机因网络限制，经 WLAN 的 Termux SSH 跳板核查服务器；GitHub 托管 runner 直接连接服务器，不依赖私有 WLAN 地址。首次配置已经授权使用密码引导，后续自动交付使用公钥；密码和私钥不提交到仓库。
 
-2026-10-08 已核对并固定支持 Node 24 的 checkout 7.0.1、setup-node 7.1.0、pnpm/action-setup 6.1.0、upload-artifact 7.0.2 与 download-artifact 8.0.2。使用 GitHub 托管 Ubuntu runner；自托管 runner 至少需要 2.327.1。镜像 artifact 保持默认 ZIP 归档和解压语义，不设置 `archive:false`。兼容依据：[checkout](https://github.com/actions/checkout/tree/v7.0.1#whats-new)、[setup-node](https://github.com/actions/setup-node/tree/v7.1.0#whats-new-in-v7)、[pnpm v12 支持](https://github.com/pnpm/action-setup/releases/tag/v6.1.0)、[上传输入](https://github.com/actions/upload-artifact/blob/v7.0.2/action.yml)、[下载输入](https://github.com/actions/download-artifact/blob/v8.0.2/action.yml)。
+生产配置位于服务器 `/opt/careerscape/`：app.env 原样保存经维护者确认的本地 `.env`，仅 root 可读写；deploy.env 保存固定端口、HTTPS origin 与代理镜像 ID。Google 配置沿用本机已验收的 Google 原生接口；CI 使用隔离 fixture，不读生产 AI 密钥。生产 Compose 固定读取 app.env，容器内数据库路径、端口、资源目录和 HTTPS origin 使用生产运行参数，AI 配置沿用该文件。
 
-分支 push 和 PR 如果只修改 `docs/**`、`README.md`、`CONTRIBUTING.md` 或 `.github/PULL_REQUEST_TEMPLATE.md`，整个工作流按 `paths-ignore` 跳过。手动运行不受该过滤影响；tag push 不按文件路径过滤。GitHub 的路径过滤语义见[官方工作流语法](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onpushpull_requestpull_request_targetpathspaths-ignore)。
+app.env 和 app.env.sha256 由维护者通过 SSH 配置，不进入 Git、镜像或 Actions artifact。每次部署先校验文件 SHA-256，缺少校验文件或内容变化时，在加载镜像、停止应用之前失败；发布和回退均不改写 app.env。只有维护者明确确认配置更新后，才重新上传并更新校验值。
 
-并发组为“工作流名称 + ref”。同一分支或 PR ref 的新运行会取消旧运行；tag ref 不启用自动取消。已经完成的推送不会因后续运行取消而回滚，排查时应看具体步骤与发布摘要。
+## HTTPS、备份与回退
 
-## 配置凭据并首次发布
+应用使用固定 loopback 3300、一个 Node 写进程和固定 careerscape-data 卷。独立 Caddy 容器占用已核查空闲的 443，使用 Let's Encrypt shortlived IP 证书、TLS-ALPN 验证及自动续期，不占用已有应用的 80。证书/ACME 状态保存到独立卷。APP_ORIGIN 为实际 HTTPS 来源，Secure Cookie 不降级。
 
-维护者在 Docker Hub 创建具有目标仓库推送权限的 access token，然后在 GitHub 仓库 **Settings → Secrets and variables → Actions** 添加两个 repository secrets：
+更新时开启维护页，停止旧写进程，调用运行镜像的 container-db.mjs 进行不触发迁移的备份和完整性检查，再启动新镜像。Docker healthy、schema 版本、固定素材和可信 HTTPS 均通过才开放玩家访问。公开 health 可以穿过维护页，以便在恢复写入前验证 TLS。
 
-| Secret               | 填写内容                                                                             |
-| -------------------- | ------------------------------------------------------------------------------------ |
-| `DOCKERHUB_USERNAME` | Docker Hub 登录账号，预期为 `yunyunjuan`，必须对 `yunyunjuan/careerscape` 有推送权限 |
-| `DOCKERHUB_TOKEN`    | Docker Hub access token，不使用账号密码                                              |
+激活前失败，自动恢复校验过的数据库及上一镜像；失败数据库保留，不删除。首次失败保持维护状态。恢复玩家写入后的故障不自动用旧备份覆盖数据；维护期间由操作者评估 schema 与新数据再恢复。
 
-Token 用于自动化身份认证，权限与撤销方式见 [Docker 官方 access tokens 文档](https://docs.docker.com/security/access-tokens/)。凭据由维护者自行填入 GitHub，无需发到聊天、PR 或仓库文件，也不会作为构建参数写入镜像。
-
-配置后，在 **Actions → CI and Docker → Run workflow** 中选择仓库的**实际默认分支**，勾选 **publish** 后运行。工作流会重新完成 check 和 docker，再发布本次验证的镜像。只添加 Secrets 不会自动补跑先前的发布步骤；普通功能分支即使勾选 publish 也不会推送。
-
-任一 Secret 缺失时，发布 job 写出 warning 和摘要，跳过下载、加载、登录和推送；此前成功构建的镜像 artifact 仍可下载。因此整次运行显示绿色，也可能是“验证成功、发布因缺凭据跳过”。如果凭据已填写但登录或推送失败，相应步骤失败，不会记为发布成功。
-
-## 实际镜像标签
-
-下表标签均位于 `docker.io/yunyunjuan/careerscape`：
-
-| 来源                          | 发布的标签                                           |
-| ----------------------------- | ---------------------------------------------------- |
-| 每次允许发布的运行            | `sha-<完整提交 SHA>`，由 `type=sha,format=long` 生成 |
-| 实际默认分支                  | 除 SHA 标签外，更新 `latest`                         |
-| `v1.2.3` tag                  | SHA 标签、`v1.2.3` 和 SemVer 别名 `1.2.3`            |
-| `v1.2.3-rc.1` tag             | SHA 标签、`v1.2.3-rc.1` 和 `1.2.3-rc.1`              |
-| 其他匹配 `v*` 的非 SemVer tag | SHA 标签和对应 Git tag 的镜像标签；没有 SemVer 别名  |
-
-当前触发条件允许 `v*`，并非只允许 `vX.Y.Z`。SemVer 规则只生成完整版本别名，不生成 major/minor 浮动标签。`latest` 自动生成被关闭，仅默认分支的显式规则开启；版本 tag 不更新 `latest`。不符合 Docker 标签字符要求的 Git tag 会按 metadata-action 规则规范化，标签行为见[官方 metadata-action 文档](https://github.com/docker/metadata-action#tags-input)。
-
-SHA 标签关联源代码提交；精确识别已发布镜像时使用本次运行记录的 digest。各标签逐个推送，不是一次原子操作；中途失败时已有标签可能已推送，应以步骤日志与摘要核对结果。
-
-## Artifact 与结果核验
-
-工作流显式上传的两个 artifact 均配置保留 **7 天**：
-
-- **browser-evidence**：测试结束时尝试上传 `test-results/`、`playwright-report/` 和 `docs/screenshots/`，包含浏览器失败证据及页面截图。
-- **careerscape-image**：仅在镜像构建和启动检查成功后上传，包含 `careerscape-image.tar.gz` 与 `careerscape-image.sha256`。它是本次已测试镜像，缺少 Docker Hub Secrets 时也会保留。
-
-Buildx Action 还会附带上传名为`guoweiyi~CareerScape~….dockerbuild`的构建记录；它不是可加载镜像，不参与发布。其保留期沿用Action/仓库默认设置，本次实际为90天。发布下载时指定`name: careerscape-image`，不会混入构建记录或浏览器证据。
-
-镜像 artifact 可在对应 Actions run 页面下载。发布 job 用同一份 SHA-256 文件核对压缩镜像，再加载并推送。保留期届满后需要重新运行工作流生成新的可下载 artifact，不能把临时 artifact 当作长期发布仓库。
-
-成功推送的步骤会把镜像标签和 `RepoDigests` 写入 Actions 摘要，同时注明没有部署运行中的应用。验收时记录 Actions run 链接、实际 Git SHA、推送结果、标签与 digest；没有推送成功步骤时，不能仅凭绿色 CI 宣称镜像已发布。实际环境启动和部署验收另记于[持续交付日志](delivery-log.md)与[验收记录](verification.md)。
-
-## 维护入口
-
-- [贡献指南](../CONTRIBUTING.md)：本地环境、测试、内容与隐私边界。
-- [PR 模板](../.github/PULL_REQUEST_TEMPLATE.md)：最终行为、实际验证与回退。
-- [工作流源码](../.github/workflows/ci.yml)：触发条件、固定 Actions 版本和 job 依赖。
-- [部署说明](deployment.md)：镜像运行、持久卷、HTTPS 和恢复。
-
-扩展 ARM64、变更镜像目标或标签规则、升级 Actions/Node/pnpm/原生依赖时，应同步镜像启动验证和本文，不跳过权限、冻结资源或真实事务检查。
+部署结果写入服务器 current.json 和 Actions 摘要，关联 Git SHA、镜像 ID、运行编号和地址。至少保留当前及上一成功版本；不要执行全局 Docker prune 或 compose down --volumes。受控备份的加密、异地复制、30 天保留及删除指纹重放按 backend-operations.md 执行，首次上线不冒称已配置异地备份。

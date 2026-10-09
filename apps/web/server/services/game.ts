@@ -4,13 +4,10 @@ import { id, now, hash, canonical, invariant, AppError } from '../../../../packa
 import { ActionInputSchema, WorldStateSchema,ContentPackSchema, type NarrativeMessage, type GameInstance } from '../../../../packages/contracts'
 import { startState, nodeFor, choicesFor, applyChoice, assemble,assembleWithFallback, occurrenceFor } from '../../../../packages/narrative/engine'
 import {legacyPack} from '../../../../packages/content/seed-v1'
-import { buildRoleContext, createProvider, MockProvider,detectSupportedIntent,SupportedIntentSchema,type SupportedIntent, type ProviderResult, type RoleProvider } from '../../../../packages/agent'
+import { buildRoleContext, createProvider,detectSupportedIntent,SupportedIntentSchema,type SupportedIntent, type ProviderResult, type RoleProvider } from '../../../../packages/agent'
 import { ContentService,checkAssets } from './content'
 
-type SessionRow = { id: string; owner_id: string; title: string; pack_id: string; pack_version: string; current_branch_id: string; created_at: string; updated_at: string }
-type BranchRow = { id: string; session_id: string; parent_branch_id: string | null; fork_event_seq: number; revision: number; state: string; created_at: string }
-type EventRow = { id: string; session_id: string; branch_id: string; event_seq: number; kind: string; actor: string; channel: string; recipient_id: string | null; payload: string; state_after: string; created_at: string }
-type TurnRow = { id: string; request_hash: string; lease_token: string; lease_until: number; status: string; branch_id: string }
+import { SessionRepository, type SessionRow, type BranchRow, type EventRow, type TurnRow } from './session-repository'
 export type GameMessage = { id: string; eventSeq: number; speakerId: 'player' | NarrativeMessage['speakerId']; text: string; expression: NarrativeMessage['expression']; channel: 'group' | 'private' | 'explanation'; recipientId?: string; createdAt: string; sourceEventIds: string[] }
 type AssemblyFallback={fromPackVersion:number;toPackVersion:number;reason:string;requestedSeed:string}
 export function transportMessages(messages:GameMessage[],maxBytes=100_000){
@@ -26,28 +23,12 @@ export function transportMessages(messages:GameMessage[],maxBytes=100_000){
   return selected
 }
 export type SessionDTO = ReturnType<GameService['get']>
-export class GameService {
+export class GameService extends SessionRepository {
   readonly content: ContentService
-  constructor(readonly store: Store, readonly provider: RoleProvider = createProvider()) { this.content = new ContentService(store) }
-  owned(userId: string, sessionId: string) {
-    const row = this.store.get<SessionRow>('SELECT * FROM sessions WHERE id=? AND owner_id=?', sessionId, userId)
-    invariant(row, 'SESSION_NOT_FOUND', 404, '存档不存在或不属于当前账号。')
-    return row
-  }
-  branch(sessionId: string, branchId: string) {
-    const branch = this.store.get<BranchRow>('SELECT * FROM branches WHERE id=? AND session_id=?', branchId, sessionId)
-    invariant(branch, 'BRANCH_NOT_FOUND', 404, '路线不存在。')
-    return branch
-  }
-  lineage(sessionId: string, branchId: string, depth = 0): EventRow[] {
-    invariant(depth < 100, 'BRANCH_DEPTH', 409, '路线层数过多，请从较早路线继续。')
-    const b = this.branch(sessionId, branchId)
-    const prefix = b.parent_branch_id ? this.lineage(sessionId, b.parent_branch_id, depth + 1).filter(e => e.event_seq <= b.fork_event_seq) : []
-    return [...prefix, ...this.store.all<EventRow>('SELECT * FROM event_logs WHERE session_id=? AND branch_id=? ORDER BY event_seq', sessionId, branchId)]
-  }
+  constructor(store: Store, readonly provider: RoleProvider = createProvider()) { super(store); this.content = new ContentService(store) }
   messages(events: EventRow[]): GameMessage[] { return events.flatMap(e => (JSON.parse(e.payload) as { messages?: GameMessage[] }).messages || []) }
   get(userId: string, sessionId: string, branchId?: string) {
-    const session = this.owned(userId, sessionId), branch = this.branch(sessionId, branchId || session.current_branch_id)
+    const session = this.owned(userId, sessionId, 'story'), branch = this.branch(sessionId, branchId || session.current_branch_id)
     const pack = this.content.get(session.pack_id, session.pack_version), state = WorldStateSchema.parse(JSON.parse(branch.state))
     const node = nodeFor(pack, state), events = this.lineage(sessionId, branch.id)
     const instanceRow = this.store.get<{ payload: string }>('SELECT payload FROM game_instances WHERE session_id=? AND branch_id=?', sessionId, branch.id)!
@@ -71,7 +52,7 @@ export class GameService {
     return snapshot
   }
   list(userId: string) {
-    return { sessions: this.store.all<SessionRow>('SELECT * FROM sessions WHERE owner_id=? ORDER BY updated_at DESC', userId).map(s => {
+    return { sessions: this.store.all<SessionRow>("SELECT * FROM sessions WHERE owner_id=? AND mode='story' ORDER BY updated_at DESC", userId).map(s => {
       const b = this.branch(s.id, s.current_branch_id), state = WorldStateSchema.parse(JSON.parse(b.state))
       return { id: s.id, title: s.title, branchId: b.id, revision: b.revision, packId: s.pack_id, packVersion: Number(s.pack_version), status: state.endingId ? 'ended' : 'active', nodeId: state.nodeId, createdAt: s.created_at, updatedAt: s.updated_at }
     }) }
@@ -101,7 +82,7 @@ export class GameService {
     return this.store.transaction(() => {
       invariant(this.store.get('SELECT id FROM users WHERE id=?', userId), 'UNAUTHORIZED', 401, '请重新登录。')
       invariant(this.store.get<{n:number}>('SELECT COUNT(*) n FROM sessions WHERE owner_id=?',userId)!.n<50,'SESSION_LIMIT',409,'已保存50局，请先导出或管理已有记录。')
-      this.store.run('INSERT INTO sessions VALUES (?,?,?,?,?,?,?,?)', sessionId, userId, pack.title, pack.id, String(pack.version), branchId, stamp, stamp)
+      this.store.run('INSERT INTO sessions (id,owner_id,title,pack_id,pack_version,current_branch_id,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)', sessionId, userId, pack.title, pack.id, String(pack.version), branchId, stamp, stamp)
       this.store.run('INSERT INTO branches VALUES (?,?,NULL,0,0,?,?)', branchId, sessionId, JSON.stringify(state), stamp)
       this.insertInstance(sessionId, branchId, assembled)
       const occurrence = occurrenceFor(pack, assembled, state)
@@ -120,24 +101,9 @@ export class GameService {
     return messages.map((m, index) => ({ ...m, id: `${eventId}:${index}`, eventSeq: seq, channel, ...(recipientId ? { recipientId } : {}), createdAt: stamp, sourceEventIds: [eventId] }))
   }
   async act(userId: string, sessionId: string, raw: unknown) {
-    const input = ActionInputSchema.parse(raw), requestHash = hash(canonical(input)), turnId = hash(`${sessionId}:${input.clientActionId}`), lease = id()
-    const prepared = this.store.transaction(() => {
-      const session = this.owned(userId, sessionId)
-      const receipt = this.store.get<{ request_hash: string; result: string }>('SELECT * FROM action_receipts WHERE session_id=? AND client_action_id=?', sessionId, input.clientActionId)
-      if (receipt) { invariant(receipt.request_hash === requestHash, 'ACTION_BODY_CONFLICT', 409, '相同动作编号不能携带不同内容。'); return { receipt: JSON.parse(receipt.result) as { turnId: string; session: SessionDTO; messages: GameMessage[]; replayed: boolean } } }
-      const prior = this.store.get<TurnRow>('SELECT * FROM turns WHERE session_id=? AND client_action_id=?', sessionId, input.clientActionId)
-      if (prior) {
-        invariant(prior.request_hash === requestHash, 'ACTION_BODY_CONFLICT', 409, '相同动作编号不能携带不同内容。')
-        invariant(prior.status !== 'running' || prior.lease_until < Date.now(), 'TURN_RUNNING', 409, '动作正在处理中，请查询回合状态。')
-      }
-      const branch = this.branch(sessionId, input.branchId)
-      invariant(branch.revision === input.expectedRevision, 'REVISION_CONFLICT', 409, '存档已在另一页面更新，请刷新后选择。')
-      invariant(!this.store.get('SELECT id FROM turns WHERE session_id=? AND branch_id=? AND client_action_id<>? AND status=? AND lease_until>?',sessionId,input.branchId,input.clientActionId,'running',Date.now()),'TURN_RUNNING',409,'当前路线已有动作正在生成，请等待完成。')
-      invariant(branch.revision < 400 || input.kind==='leave', 'TURN_LIMIT', 409, '本路线已达回合上限，请回溯或结束。')
-      const stamp = now()
-      this.store.run('INSERT INTO turns VALUES (?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(session_id,client_action_id) DO UPDATE SET status=excluded.status,lease_token=excluded.lease_token,lease_until=excluded.lease_until,failure_code=NULL,updated_at=excluded.updated_at', turnId, sessionId, branch.id, input.clientActionId, requestHash, input.expectedRevision, 'running', lease, Date.now() + 45000, null, stamp, stamp)
-      return { session, branch }
-    })
+    const input = ActionInputSchema.parse(raw)
+    this.owned(userId, sessionId, 'story')
+    const { prepared, turnId, lease, requestHash } = this.claimTurn<{ turnId: string; session: SessionDTO; messages: GameMessage[]; replayed: boolean }>(userId, sessionId, input)
     if ('receipt' in prepared && prepared.receipt) return { ...prepared.receipt, replayed: true }
     try {
       const branch = prepared.branch!, session = prepared.session!, pack = this.content.get(session.pack_id, session.pack_version)
@@ -169,18 +135,14 @@ export class GameService {
         for(const fact of context.facts){
           fact.sourceEventIds=lineage.filter(event=>{const payload=JSON.parse(event.payload) as {effects?:{op:string;characterId?:string;factId?:string}[]};return payload.effects?.some(effect=>effect.op==='reveal'&&effect.characterId===speakerId&&effect.factId===fact.id)}).map(event=>event.id)
         }
-        try { usage = await this.provider.generate(context) } catch {
-          usage = { ...await new MockProvider().generate(context), degraded: true }
-          usage.text = `【模型暂不可用，已降级为模拟对话】${usage.text.replace('【模拟对话】', '')}`
-          usage.provider=`${this.provider.name}+mock-fallback`;usage.costEstimate=null;usage.costSource='Provider attempt failed: upstream token/cost usage unknown; zero counters describe fallback only'
+        try { usage = await this.provider.generate(context) } catch (error) {
+          if (error instanceof AppError) throw error
+          throw new AppError('AI_UPSTREAM_FAILED', 503, '模型暂不可用，本回合未保存，请重试。')
         }
         messages = [{ speakerId: 'player', text: input.text!, expression: 'neutral' }, { speakerId, text: usage.text, expression: 'thinking' }]
       }
       return this.store.transaction(() => {
-        this.owned(userId, sessionId)
-        const current = this.branch(sessionId, input.branchId), currentTurn = this.store.get<TurnRow>('SELECT * FROM turns WHERE id=?', turnId)
-        invariant(currentTurn?.lease_token === lease && currentTurn.status === 'running' && currentTurn.lease_until > Date.now(), 'LEASE_LOST', 409, '生成租约已过期，请查询回合后重试。')
-        invariant(current.revision === input.expectedRevision, 'REVISION_CONFLICT', 409, '另一个动作先完成，当前结果未提交。')
+        const current = this.assertTurnCommit(userId, sessionId, input, turnId, lease)
         const eventSeq = this.store.get<{ n: number }>('SELECT COALESCE(MAX(event_seq),0)+1 n FROM event_logs WHERE session_id=?', sessionId)!.n
         const eventId = id(), stamp = now(), revision = current.revision + 1
         const committedMessages = this.makeMessages(messages, eventId, eventSeq, stamp, channel, input.recipientId)
@@ -225,10 +187,5 @@ export class GameService {
       this.store.run('UPDATE sessions SET current_branch_id=?,updated_at=? WHERE id=?', newBranchId, stamp, session.id)
       return this.get(userId, sessionId, newBranchId)
     })
-  }
-  journal(userId: string, sessionId: string, branchId?: string, text?: string) {
-    const session = this.owned(userId, sessionId), branch = this.branch(sessionId, branchId || session.current_branch_id)
-    if (text !== undefined) { z.string().max(10000).parse(text); this.store.run('INSERT INTO journals VALUES (?,?,?,?) ON CONFLICT(session_id,branch_id) DO UPDATE SET text=excluded.text,updated_at=excluded.updated_at', sessionId, branch.id, text, now()) }
-    return this.store.get<{ text: string; updatedAt: string }>('SELECT text,updated_at AS updatedAt FROM journals WHERE session_id=? AND branch_id=?', sessionId, branch.id) || { text: '', updatedAt: null }
   }
 }

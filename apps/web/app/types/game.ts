@@ -52,6 +52,7 @@ export interface Session {
   } | null
 }
 export interface SessionSummary {
+  mode?: 'story' | 'galgame'
   id: string
   title: string
   status: string

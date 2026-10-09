@@ -127,12 +127,12 @@ useSeoMeta({ title: '职境漫游 · 先走进一天，再想象未来' })
             </div>
           </div>
         </article>
-        <article class="coming-card">
+        <article class="coming-card gal-home-entry">
           <span class="coming-icon" aria-hidden="true">⌁</span>
-          <p class="eyebrow">还有许多种可能</p>
-          <h3>下一段职境，<br />正在慢慢生长。</h3>
-          <p>更多不同的工作内容，<br />等待下一次相遇。</p>
-          <span class="outlined-label">筹备中 · 暂不可游玩</span>
+          <p class="eyebrow">AI CAREER STORY</p>
+          <h3>换一种身份，<br />故事因你而生长。</h3>
+          <p>测试、前端、产品。<br />选择身份，遇见同事，留下一份工作产物。</p>
+          <NuxtLink class="secondary-button" to="/galgame">进入 AI 职业故事 ↗</NuxtLink>
           <div class="coming-lines" aria-hidden="true" />
         </article>
         <aside class="exploration-note">
@@ -143,7 +143,7 @@ useSeoMeta({ title: '职境漫游 · 先走进一天，再想象未来' })
           <div class="note-divider" />
           <p class="handwritten">先靠近一点，<br />再听听自己的感受。</p>
           <small
-            >{{ catalog?.provider === 'openai' ? '已配置在线角色对话' : '当前为模拟对话体验'
+            >{{ catalog?.provider && catalog.provider !== 'mock' ? '已配置在线角色对话' : '当前为模拟对话体验'
             }}<br />人物与组织均为虚构，行业核验待完成。</small
           >
         </aside>

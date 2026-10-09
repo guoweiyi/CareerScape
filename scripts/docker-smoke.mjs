@@ -150,6 +150,23 @@ try {
   await healthy()
   await verifyPersisted()
   console.log('Verified persisted identity, ending, journal and receipt after restart.')
+  // A stopped-writer backup must restore real identity/session/journal data,
+  // and an invalid checksum must fail before touching the database.
+  docker('stop', '--time', '15', name)
+  const databaseRun = (...args) => docker('run', '--rm', '--network', 'none', '--workdir', '/app/server',
+    '--mount', `type=volume,source=${volume},target=/data`,
+    '--mount', `type=volume,source=${volume},target=/backups`, '--entrypoint', 'node', image, ...args)
+  databaseRun('/app/server/container-db.mjs', 'backup', '/backups/smoke-backup.sqlite')
+  databaseRun('--input-type=module', '-e', "import Database from 'better-sqlite3'; const db=new Database('/data/careerscape.sqlite'); db.prepare('UPDATE journals SET text=?').run('After backup'); db.close();")
+  databaseRun('--input-type=module', '-e', "import fs from 'node:fs'; const p='/backups/smoke-backup.sqlite.manifest.json'; fs.copyFileSync(p,p+'.good'); fs.writeFileSync(p,JSON.stringify({sha256:'invalid'}));")
+  assert.throws(() => databaseRun('/app/server/container-db.mjs', 'restore', '/backups/smoke-backup.sqlite'))
+  databaseRun('--input-type=module', '-e', "import fs from 'node:fs'; fs.copyFileSync('/backups/smoke-backup.sqlite.manifest.json.good','/backups/smoke-backup.sqlite.manifest.json');")
+  databaseRun('/app/server/container-db.mjs', 'restore', '/backups/smoke-backup.sqlite')
+  docker('start', name)
+  refreshPublishedPort()
+  await healthy()
+  await verifyPersisted()
+  console.log('Verified backup/restore and corrupt-checksum rejection on isolated data.')
   // Recreating the container proves data lives in the named volume, not its writable layer.
   docker('rm', '--force', name)
   createdContainer = false

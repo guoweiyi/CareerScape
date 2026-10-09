@@ -1,0 +1,40 @@
+{
+  admin off
+  auto_https disable_redirects
+  default_sni {$PUBLIC_HOST}
+}
+
+https://{$PUBLIC_HOST}:443 {
+  tls {
+    issuer acme {
+      dir https://acme-v02.api.letsencrypt.org/directory
+      profile shortlived
+      disable_http_challenge
+    }
+  }
+  route {
+    handle /api/health {
+      reverse_proxy 127.0.0.1:{$CAREERSCAPE_PORT}
+    }
+    @maintenance file {
+      root /state
+      try_files maintenance
+    }
+    handle @maintenance {
+      header Retry-After 60
+      respond "CareerScape is updating. Please retry shortly." 503
+    }
+    handle {
+      request_body {
+        max_size 512KB
+      }
+      reverse_proxy 127.0.0.1:{$CAREERSCAPE_PORT} {
+        flush_interval -1
+        transport http {
+          read_timeout 120s
+          write_timeout 120s
+        }
+      }
+    }
+  }
+}

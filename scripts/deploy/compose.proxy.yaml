@@ -1,0 +1,25 @@
+services:
+  proxy:
+    image: ${CADDY_IMAGE:?Pin the validated Caddy image}
+    pull_policy: never
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      PUBLIC_HOST: ${PUBLIC_HOST:?Configure the server IP}
+      CAREERSCAPE_PORT: ${CAREERSCAPE_PORT:-3300}
+    volumes:
+      - /opt/careerscape/Caddyfile:/etc/caddy/Caddyfile:ro
+      - /opt/careerscape/state:/state:ro
+      - careerscape-caddy-data:/data
+      - careerscape-caddy-config:/config
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 128m
+volumes:
+  careerscape-caddy-data:
+    name: careerscape-caddy-data
+  careerscape-caddy-config:
+    name: careerscape-caddy-config
